@@ -62,7 +62,7 @@
   justify-content: flex-end;
   align-items: center;
   gap: 8px 10px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
 }
 
 .editor-access {
@@ -460,8 +460,10 @@
 
 .connections-page .toolbar-search {
   height: 38px;
+  width: 178px;
   min-width: 178px;
-  padding-inline: 11px;
+  max-width: 178px;
+  padding-inline: 10px;
   border-radius: 8px;
 }
 
@@ -483,7 +485,7 @@
 .connections-page .secondary-button,
 .connections-page .primary-button {
   min-height: 38px;
-  padding-inline: 12px;
+  padding-inline: 10px;
   font-size: 12px;
 }
 
@@ -736,14 +738,15 @@
     width: 100%;
     flex: 0 0 56px;
     justify-content: flex-start;
+    flex-wrap: wrap;
   }
 
   .connections-page .document-control {
-    flex: 0 0 172px;
+    flex: 0 0 156px;
   }
 
   .connections-page .toolbar-search {
-    flex: 0 0 178px;
+    flex: 0 0 150px;
   }
 
   .connections-page .connection-composer {
