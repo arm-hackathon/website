@@ -1,5 +1,6 @@
 import { del, get, list, put } from '@vercel/blob';
 import type { APIRoute } from 'astro';
+import { getEditorAccess } from '../../lib/auth';
 import { graphDocumentSchema } from '../../lib/graph';
 
 export const prerender = false;
@@ -40,9 +41,10 @@ function hasStorageCredentials(): boolean {
   );
 }
 
-export const GET: APIRoute = async ({ url }) => {
+export const GET: APIRoute = async ({ request, url }) => {
+  const editor = await getEditorAccess(request);
   if (!hasStorageCredentials()) {
-    return json({ configured: false, message: 'Vercel Blob is not configured.' }, 503);
+    return json({ configured: false, message: 'Vercel Blob is not configured.', editor }, 503);
   }
 
   try {
@@ -53,7 +55,7 @@ export const GET: APIRoute = async ({ url }) => {
         .map((blob) => decodeName(blob.pathname.slice(topologyPrefix.length).replace(/\.json$/, '')))
         .filter(Boolean)
         .sort((left, right) => left.localeCompare(right));
-      return json({ configured: true, drafts });
+      return json({ configured: true, drafts, editor });
     }
 
     if (!validDraftName(name)) return json({ message: 'Draft names must be at least 3 characters and cannot contain slashes.' }, 400);
@@ -68,8 +70,11 @@ export const GET: APIRoute = async ({ url }) => {
 };
 
 export const POST: APIRoute = async ({ request }) => {
+  const editor = await getEditorAccess(request);
+  if (!editor.configured) return json({ configured: false, message: 'Editor authentication is not configured.', editor }, 503);
+  if (!editor.canEdit) return json({ configured: true, message: 'Sign in with an approved GitHub account to edit shared drafts.', editor }, 401);
   if (!hasStorageCredentials()) {
-    return json({ configured: false, message: 'Add a Vercel Blob store before synchronising.' }, 503);
+    return json({ configured: false, message: 'Add a Vercel Blob store before synchronising.', editor }, 503);
   }
 
   try {
@@ -98,9 +103,12 @@ export const POST: APIRoute = async ({ request }) => {
   }
 };
 
-export const DELETE: APIRoute = async ({ url }) => {
+export const DELETE: APIRoute = async ({ request, url }) => {
+  const editor = await getEditorAccess(request);
+  if (!editor.configured) return json({ configured: false, message: 'Editor authentication is not configured.', editor }, 503);
+  if (!editor.canEdit) return json({ configured: true, message: 'Sign in with an approved GitHub account to edit shared drafts.', editor }, 401);
   if (!hasStorageCredentials()) {
-    return json({ configured: false, message: 'Vercel Blob is not configured.' }, 503);
+    return json({ configured: false, message: 'Vercel Blob is not configured.', editor }, 503);
   }
 
   const name = url.searchParams.get('name');

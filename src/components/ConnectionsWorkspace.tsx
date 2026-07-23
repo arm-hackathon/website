@@ -13,12 +13,13 @@ import {
   type NodeChange,
   type NodeProps,
 } from '@xyflow/react';
-import { ArrowLeftRight, ArrowRight, ChevronDown, CloudUpload, Download, FlaskConical, GitBranch, History, PanelRight, PanelRightClose, Plus, RotateCcw, Search, Settings2, SlidersHorizontal, Tag, Trash2, TriangleAlert, Upload, Users, Wind, X } from 'lucide-react';
+import { ArrowLeftRight, ArrowRight, ChevronDown, CloudUpload, Download, FlaskConical, GitBranch, History, LockKeyhole, LogIn, PanelRight, PanelRightClose, Plus, RotateCcw, Search, Settings2, SlidersHorizontal, Tag, Trash2, TriangleAlert, Upload, UserRoundCheck, Users, Wind, X } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react';
 import '@xyflow/react/dist/style.css';
 import './NodesWorkspace.css';
 import './ConnectionsWorkspace.css';
 import SiteChrome, { type SyncState } from './SiteChrome';
+import type { EditorAccess } from '../lib/auth';
 import {
   createConnection,
   createNodeFromPreset,
@@ -122,6 +123,7 @@ export default function ConnectionsWorkspace() {
   const [hydrated, setHydrated] = useState(false);
   const [syncState, setSyncState] = useState<SyncState>('synced');
   const [serverBackup, setServerBackup] = useState<GraphDocument | null>(null);
+  const [editorAccess, setEditorAccess] = useState<EditorAccess>({ configured: false, authenticated: false, canEdit: false });
   const [confirmResetAll, setConfirmResetAll] = useState(false);
   const [confirmSynchronise, setConfirmSynchronise] = useState(false);
   const [draftMenuOpen, setDraftMenuOpen] = useState(false);
@@ -137,9 +139,11 @@ export default function ConnectionsWorkspace() {
   const visibleNodes = nodes.map((node) => ({ ...node, hidden: Boolean(searchQuery && !node.data.label.toLowerCase().includes(searchQuery.toLowerCase())) }));
   const hiddenNodeIds = new Set(visibleNodes.filter((node) => node.hidden).map((node) => node.id));
   const visibleEdges = edges.map((edge) => ({ ...edge, hidden: hiddenNodeIds.has(edge.source) || hiddenNodeIds.has(edge.target) }));
+  const canEdit = editorAccess.canEdit;
 
   useEffect(() => {
     const raw = window.localStorage.getItem('icarus-graph-draft');
+    if (new URLSearchParams(window.location.search).get('auth') === 'denied') setNotice('This GitHub account is not on the editor allowlist');
     if (raw) {
       try {
         const localDocument = parseGraphDocument(JSON.parse(raw));
@@ -182,6 +186,7 @@ export default function ConnectionsWorkspace() {
         const response = await fetch('/api/topology', { cache: 'no-store' });
         const payload = await response.json();
         if (cancelled) return;
+        if (payload.editor) setEditorAccess(payload.editor as EditorAccess);
         if (payload.drafts) {
           setDraftNames(payload.drafts);
           const localName = window.localStorage.getItem('icarus-active-draft') ?? '';
@@ -208,6 +213,7 @@ export default function ConnectionsWorkspace() {
     try {
       const response = await fetch(`/api/topology?name=${encodeURIComponent(name)}`, { cache: 'no-store' });
       const payload = await response.json();
+      if (payload.editor) setEditorAccess(payload.editor as EditorAccess);
       if (response.ok && payload.document) document = payload.document as GraphDocument;
     } catch {
       // fall through to local fallback
@@ -230,19 +236,34 @@ export default function ConnectionsWorkspace() {
   }
 
   async function deleteDraft(name: string) {
-    deleteLocalDraft(name);
-    try {
-      await fetch(`/api/topology?name=${encodeURIComponent(name)}`, { method: 'DELETE' });
-    } catch {
-      // local delete already applied; server delete is best-effort
+    if (!canEdit) {
+      setNotice('Sign in with an approved GitHub account to edit shared drafts');
+      return;
     }
+    let serverUnavailable = false;
+    try {
+      const response = await fetch(`/api/topology?name=${encodeURIComponent(name)}`, { method: 'DELETE' });
+      if (!response.ok) {
+        if (response.status === 503) {
+          serverUnavailable = true;
+        } else {
+          const payload = await response.json().catch(() => ({})) as { message?: string; editor?: EditorAccess };
+          if (payload.editor) setEditorAccess(payload.editor);
+          setNotice(payload.message ?? 'Draft could not be deleted');
+          return;
+        }
+      }
+    } catch {
+      serverUnavailable = true;
+    }
+    deleteLocalDraft(name);
     setDraftNames((current) => current.filter((draft) => draft !== name));
     setConfirmDeleteDraft(null);
     if (name === activeDraftName) {
       setActiveDraftName(null);
       window.localStorage.removeItem('icarus-active-draft');
     }
-    setNotice('Draft deleted');
+    setNotice(serverUnavailable ? 'Draft deleted locally' : 'Draft deleted');
   }
 
   useEffect(() => {
@@ -252,16 +273,16 @@ export default function ConnectionsWorkspace() {
   }, [notice]);
 
   const handleNodesChange = useCallback((changes: NodeChange<IcarusNode>[]) => {
-    onNodesChange(changes);
+    onNodesChange(canEdit ? changes : changes.filter((change) => change.type === 'select' || change.type === 'dimensions'));
     // Filter out React Flow's internal `dimensions` and pure `select` changes —
     // they fire on mount and on every click without indicating a real edit.
-    if (!initialisingRef.current && changes.some((change) => change.type !== 'select' && change.type !== 'dimensions')) setSyncState('local');
-  }, [onNodesChange]);
+    if (canEdit && !initialisingRef.current && changes.some((change) => change.type !== 'select' && change.type !== 'dimensions')) setSyncState('local');
+  }, [canEdit, onNodesChange]);
 
   const handleEdgesChange = useCallback((changes: EdgeChange<IcarusEdge>[]) => {
-    onEdgesChange(changes);
-    if (!initialisingRef.current && changes.some((change) => change.type !== 'select')) setSyncState('local');
-  }, [onEdgesChange]);
+    onEdgesChange(canEdit ? changes : changes.filter((change) => change.type === 'select'));
+    if (canEdit && !initialisingRef.current && changes.some((change) => change.type !== 'select')) setSyncState('local');
+  }, [canEdit, onEdgesChange]);
 
   const selectNode = useCallback((nodeId: string) => {
     setSelectedNodeId(nodeId);
@@ -286,13 +307,15 @@ export default function ConnectionsWorkspace() {
   }, []);
 
   const onConnect = useCallback((connection: Connection) => {
+    if (!canEdit) return;
     if (!connection.source || !connection.target || connection.source === connection.target || directionExists(edges, connection.source, connection.target)) return;
     setEdges((currentEdges) => [...currentEdges, createConnection(connection.source!, connection.target!)]);
     setSyncState('local');
     setNotice('New actuator added');
-  }, [edges, setEdges]);
+  }, [canEdit, edges, setEdges]);
 
   function addNode(preset: PresetId) {
+    if (!canEdit) return;
     const newNode = createNodeFromPreset(preset, nodes.length + 1, { x: 120 + (nodes.length % 3) * 250, y: 120 + (nodes.length % 3) * 160 });
     setNodes((currentNodes) => [...currentNodes, newNode]);
     selectNode(newNode.id);
@@ -301,11 +324,13 @@ export default function ConnectionsWorkspace() {
   }
 
   function updateNodeData(nodeId: string, patch: Partial<GraphNodeData>) {
+    if (!canEdit) return;
     setNodes((currentNodes) => currentNodes.map((node) => node.id === nodeId ? { ...node, data: { ...node.data, ...patch } } : node));
     setSyncState('local');
   }
 
   function updateEdgeData(edgeId: string, patch: Partial<GraphEdgeData>) {
+    if (!canEdit) return;
     setEdges((currentEdges) => currentEdges.map((edge) => edge.id === edgeId ? { ...edge, data: { ...edge.data, ...patch } } : edge));
     setSyncState('local');
   }
@@ -325,6 +350,7 @@ export default function ConnectionsWorkspace() {
   }
 
   function removeSelected() {
+    if (!canEdit) return;
     if (selectedNode) {
       setNodes((currentNodes) => currentNodes.filter((node) => node.id !== selectedNode.id));
       setEdges((currentEdges) => currentEdges.filter((edge) => edge.source !== selectedNode.id && edge.target !== selectedNode.id));
@@ -340,6 +366,7 @@ export default function ConnectionsWorkspace() {
   }
 
   function resetAllChanges() {
+    if (!canEdit) return;
     const next = createStarterGraph();
     setNodes(next.nodes);
     setEdges(next.edges);
@@ -353,6 +380,7 @@ export default function ConnectionsWorkspace() {
   }
 
   function resetCurrentChanges() {
+    if (!canEdit) return;
     if (!serverBackup) {
       setNotice('No server backup to restore yet');
       return;
@@ -369,6 +397,7 @@ export default function ConnectionsWorkspace() {
   }
 
   function openConnectionComposer(mode: ConnectionMode) {
+    if (!canEdit) return;
     setConnectionMode(mode);
     setConnectionSource(nodes[0]?.id ?? '');
     setConnectionTarget(nodes[1]?.id ?? '');
@@ -376,6 +405,7 @@ export default function ConnectionsWorkspace() {
   }
 
   function addConnectionsFromComposer() {
+    if (!canEdit) return;
     if (!connectionSource || !connectionTarget || connectionSource === connectionTarget) {
       setConnectionError('Choose two different rooms.');
       return;
@@ -412,6 +442,11 @@ export default function ConnectionsWorkspace() {
   }
 
   function importGraph(event: ChangeEvent<HTMLInputElement>) {
+    if (!canEdit) {
+      setNotice('Sign in with an approved GitHub account to edit topology');
+      event.target.value = '';
+      return;
+    }
     const file = event.target.files?.[0];
     if (!file) return;
     const reader = new FileReader();
@@ -435,6 +470,10 @@ export default function ConnectionsWorkspace() {
   }
 
   async function synchronise() {
+    if (!canEdit) {
+      setNotice('Sign in with an approved GitHub account to synchronise drafts');
+      return;
+    }
     setSyncState('syncing');
     const document = toGraphDocument(documentName.trim() || activeDraftName || '', nodes, edges);
     // Always persist locally so the draft list works without a configured Blob
@@ -444,6 +483,7 @@ export default function ConnectionsWorkspace() {
     try {
       const response = await fetch('/api/topology', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(document) });
       const payload = await response.json();
+      if (payload.editor) setEditorAccess(payload.editor as EditorAccess);
       if (!response.ok && response.status !== 503) {
         setSyncState('local');
         setNotice(payload.message ?? 'Synchronisation failed');
@@ -471,6 +511,10 @@ export default function ConnectionsWorkspace() {
   }
 
   function requestSynchronise() {
+    if (!canEdit) {
+      setNotice('Sign in with an approved GitHub account to synchronise drafts');
+      return;
+    }
     const error = validateDraft();
     setDraftError(error);
     if (!error) setConfirmSynchronise(true);
@@ -483,21 +527,22 @@ export default function ConnectionsWorkspace() {
         <div className="workspace-toolbar">
           <div className="workspace-title"><span className="workspace-title__icon"><GitBranch size={20} /></span><div><span className="panel-kicker">Simulation interface</span><h1>Connections</h1></div></div>
           <div className="workspace-actions">
-            <label className={`document-control${draftError ? ' has-error' : ''}`}><Tag size={15} className="document-control__icon" /><input aria-label="Draft name" placeholder="Draft name" title={documentName || 'Draft name'} value={documentName} onChange={(event) => { setDocumentName(event.target.value); setDraftError(''); setSyncState('local'); }} /><button type="button" className="draft-toggle" aria-label="Show saved drafts" aria-expanded={draftMenuOpen} title="Show saved drafts" onClick={() => setDraftMenuOpen((open) => !open)}><ChevronDown size={15} /></button>{draftMenuOpen && (<><button type="button" className="draft-menu__scrim" aria-label="Close draft list" onClick={() => { setDraftMenuOpen(false); setConfirmDeleteDraft(null); }} /><div className="draft-menu" role="listbox" aria-label="Saved drafts"><span className="draft-menu__label">Saved drafts</span>{draftNames.length ? draftNames.map((draft) => confirmDeleteDraft === draft ? (<div key={draft} className="draft-menu__confirm"><span>Delete “{draft}”?</span><div className="draft-menu__confirm-actions"><button type="button" className="draft-menu__confirm-yes" onClick={() => void deleteDraft(draft)}>Delete</button><button type="button" className="draft-menu__confirm-no" onClick={() => setConfirmDeleteDraft(null)}>Cancel</button></div></div>) : (<div key={draft} className={`draft-menu__row${draft === (documentName || activeDraftName) ? ' is-active' : ''}`}><button type="button" role="option" aria-selected={draft === (documentName || activeDraftName)} className="draft-menu__item" onClick={() => { void loadDraft(draft); setDraftMenuOpen(false); }}>{draft}</button><button type="button" className="draft-menu__delete" aria-label={`Delete ${draft}`} title="Delete draft" onClick={() => setConfirmDeleteDraft(draft)}><Trash2 size={14} /></button></div>)) : <span className="draft-menu__empty">No saved drafts yet</span>}</div></>)}</label>
+            <label className={`document-control${draftError ? ' has-error' : ''}${!canEdit ? ' is-read-only' : ''}`}><Tag size={15} className="document-control__icon" /><input aria-label="Draft name" placeholder="Draft name" title={documentName || 'Draft name'} value={documentName} readOnly={!canEdit} onChange={(event) => { setDocumentName(event.target.value); setDraftError(''); setSyncState('local'); }} /><button type="button" className="draft-toggle" aria-label="Show saved drafts" aria-expanded={draftMenuOpen} title="Show saved drafts" onClick={() => setDraftMenuOpen((open) => !open)}><ChevronDown size={15} /></button>{draftMenuOpen && (<><button type="button" className="draft-menu__scrim" aria-label="Close draft list" onClick={() => { setDraftMenuOpen(false); setConfirmDeleteDraft(null); }} /><div className="draft-menu" role="listbox" aria-label="Saved drafts"><span className="draft-menu__label">Saved drafts</span>{draftNames.length ? draftNames.map((draft) => confirmDeleteDraft === draft ? (<div key={draft} className="draft-menu__confirm"><span>Delete “{draft}”?</span><div className="draft-menu__confirm-actions"><button type="button" className="draft-menu__confirm-yes" disabled={!canEdit} onClick={() => void deleteDraft(draft)}>Delete</button><button type="button" className="draft-menu__confirm-no" onClick={() => setConfirmDeleteDraft(null)}>Cancel</button></div></div>) : (<div key={draft} className={`draft-menu__row${draft === (documentName || activeDraftName) ? ' is-active' : ''}`}><button type="button" role="option" aria-selected={draft === (documentName || activeDraftName)} className="draft-menu__item" onClick={() => { void loadDraft(draft); setDraftMenuOpen(false); }}>{draft}</button>{canEdit && <button type="button" className="draft-menu__delete" aria-label={`Delete ${draft}`} title="Delete draft" onClick={() => setConfirmDeleteDraft(draft)}><Trash2 size={14} /></button>}</div>)) : <span className="draft-menu__empty">No saved drafts yet</span>}</div></>)}</label>
+            {editorAccess.configured ? canEdit ? <span className="editor-access is-authorized" title={`Editing as @${editorAccess.username}`}><span className="editor-access__icon"><UserRoundCheck size={15} /></span><span>@{editorAccess.username}</span></span> : <a className="editor-access" href={editorAccess.signInUrl} title="Sign in with an approved GitHub account to edit"><span className="editor-access__icon"><LockKeyhole size={15} /></span><span>Sign in to edit</span><LogIn size={14} /></a> : <span className="editor-access editor-access--unavailable" title="Editor authentication is not configured"><LockKeyhole size={15} /><span>Read-only preview</span></span>}
             <div className="toolbar-search"><Search size={16} /><input aria-label="Search rooms and actuators" placeholder="Search rooms & actuators" value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} /></div>
             <div className="toolbar-group">
-              <button className="secondary-button" type="button" onClick={() => openConnectionComposer(1)}><ArrowRight size={16} /> Add actuator</button>
-              <button className="secondary-button" type="button" onClick={() => openConnectionComposer(2)}><ArrowLeftRight size={16} /> Add pair</button>
+              <button className="secondary-button" type="button" disabled={!canEdit} onClick={() => openConnectionComposer(1)}><ArrowRight size={16} /> Add actuator</button>
+              <button className="secondary-button" type="button" disabled={!canEdit} onClick={() => openConnectionComposer(2)}><ArrowLeftRight size={16} /> Add pair</button>
             </div>
             <div className="toolbar-group">
-              <button className="secondary-button" type="button" title="Discard your unsaved local changes and reload the last synchronised server version" onClick={resetCurrentChanges}><History size={16} /> Reset current changes</button>
-              <button className="secondary-button secondary-button--danger" type="button" title="Discard every room and actuator and return to the default topology" onClick={() => setConfirmResetAll(true)}><TriangleAlert size={16} /> Reset all changes</button>
-              <button className="primary-button" type="button" title="Synchronise the server with the current draft" disabled={syncState === 'syncing'} onClick={requestSynchronise}><CloudUpload size={16} /> Synchronise</button>
+              <button className="secondary-button" type="button" disabled={!canEdit} title="Discard your unsaved local changes and reload the last synchronised server version" onClick={resetCurrentChanges}><History size={16} /> Reset current changes</button>
+              <button className="secondary-button secondary-button--danger" type="button" disabled={!canEdit} title="Discard every room and actuator and return to the default topology" onClick={() => setConfirmResetAll(true)}><TriangleAlert size={16} /> Reset all changes</button>
+              <button className="primary-button" type="button" title={canEdit ? 'Synchronise the server with the current draft' : 'Sign in with an approved GitHub account to synchronise'} disabled={!canEdit || syncState === 'syncing'} onClick={requestSynchronise}><CloudUpload size={16} /> Synchronise</button>
             </div>
             <div className="toolbar-group">
               <button className="icon-button" type="button" aria-label={inspectorOpen ? 'Hide inspector panel' : 'Show inspector panel'} title={inspectorOpen ? 'Hide inspector panel' : 'Show inspector panel'} aria-pressed={inspectorOpen} onClick={toggleInspector}>{inspectorOpen ? <PanelRightClose size={17} /> : <PanelRight size={17} />}</button>
               <button className="icon-button" type="button" aria-label="Export topology" title="Export topology JSON" onClick={exportGraph}><Download size={17} /></button>
-              <button className="icon-button" type="button" aria-label="Import topology" title="Import topology JSON" onClick={() => fileInputRef.current?.click()}><Upload size={17} /></button>
+              <button className="icon-button" type="button" aria-label="Import topology" title={canEdit ? 'Import topology JSON' : 'Sign in with an approved GitHub account to import topology'} disabled={!canEdit} onClick={() => fileInputRef.current?.click()}><Upload size={17} /></button>
               <input ref={fileInputRef} className="visually-hidden" type="file" accept="application/json,.json" onChange={importGraph} />
             </div>
           </div>
@@ -523,19 +568,19 @@ export default function ConnectionsWorkspace() {
 
         {connectionMode && <div className="connection-composer"><div className="connection-composer__heading"><span className="composer-icon"><ArrowLeftRight size={18} /></span><div><strong>{connectionMode === 2 ? 'Add a return actuator pair' : 'Add an actuator path'}</strong><small>Connect two rooms in one or both directions.</small></div></div><label><span>From</span><select value={connectionSource} onChange={(event) => setConnectionSource(event.target.value)}>{nodes.map((node) => <option key={node.id} value={node.id}>{node.data.label}</option>)}</select></label><ArrowRight size={17} className="composer-arrow" /><label><span>To</span><select value={connectionTarget} onChange={(event) => setConnectionTarget(event.target.value)}>{nodes.map((node) => <option key={node.id} value={node.id}>{node.data.label}</option>)}</select></label>{connectionError && <span className="composer-error">{connectionError}</span>}<button className="primary-button" type="button" onClick={addConnectionsFromComposer}><Plus size={17} /> Add actuator{connectionMode === 2 ? 's' : ''}</button><button className="icon-button" type="button" aria-label="Close connection composer" title="Close" onClick={() => setConnectionMode(null)}><X size={18} /></button></div>}
 
-          <div className={`workspace-body${inspectorOpen ? '' : ' inspector-hidden'}`}><div className="canvas-column"><div className="flow-canvas"><ReactFlow<IcarusNode, IcarusEdge> nodes={visibleNodes} edges={visibleEdges} nodeTypes={nodeTypes} onNodesChange={handleNodesChange} onEdgesChange={handleEdgesChange} onConnect={onConnect} onNodeClick={(_, node) => selectNode(node.id)} onEdgeClick={(_, edge) => selectEdge(edge.id)} onPaneClick={() => { setSelectedNodeId(null); setSelectedEdgeId(null); }} fitView fitViewOptions={{ padding: 0.26, minZoom: 0.52, maxZoom: 1.2 }} minZoom={0.35} maxZoom={1.6} proOptions={{ hideAttribution: true }} defaultEdgeOptions={{ type: 'smoothstep', markerEnd: { type: MarkerType.ArrowClosed, color: '#d87b43' } }}><Background color="var(--grid)" gap={28} size={1} /><Controls showInteractive={false} /><MiniMap className="mini-map" pannable zoomable nodeColor={(node) => node.data?.tone === 'amber' ? '#d87b43' : node.data?.tone === 'blue' ? '#6f9bc2' : node.data?.tone === 'green' ? '#61ad8f' : '#8b9290'} maskColor="rgba(120, 126, 122, 0.28)" maskStrokeColor="transparent" /></ReactFlow><div className="canvas-key"><span><i className="key-line" /> actuator direction</span><span><i className="key-dot" /> editable room</span></div></div></div>{inspectorOpen && <Inspector selectedNode={selectedNode} selectedEdge={selectedEdge} sourceNode={selectedSource ?? null} targetNode={selectedTarget ?? null} onUpdateNode={updateNodeData} onUpdateEdge={updateEdgeData} onUpdateBias={updateBias} onAddBiasField={addBiasField} onDelete={removeSelected} onAddNode={addNode} />}</div>
+          <div className={`workspace-body${inspectorOpen ? '' : ' inspector-hidden'}`}><div className="canvas-column"><div className="flow-canvas"><ReactFlow<IcarusNode, IcarusEdge> nodes={visibleNodes} edges={visibleEdges} nodeTypes={nodeTypes} onNodesChange={handleNodesChange} onEdgesChange={handleEdgesChange} onConnect={onConnect} onNodeClick={(_, node) => selectNode(node.id)} onEdgeClick={(_, edge) => selectEdge(edge.id)} onPaneClick={() => { setSelectedNodeId(null); setSelectedEdgeId(null); }} fitView fitViewOptions={{ padding: 0.26, minZoom: 0.52, maxZoom: 1.2 }} minZoom={0.35} maxZoom={1.6} proOptions={{ hideAttribution: true }} defaultEdgeOptions={{ type: 'smoothstep', markerEnd: { type: MarkerType.ArrowClosed, color: '#d87b43' } }}><Background color="var(--grid)" gap={28} size={1} /><Controls showInteractive={false} /><MiniMap className="mini-map" pannable zoomable nodeColor={(node) => node.data?.tone === 'amber' ? '#d87b43' : node.data?.tone === 'blue' ? '#6f9bc2' : node.data?.tone === 'green' ? '#61ad8f' : '#8b9290'} maskColor="rgba(120, 126, 122, 0.28)" maskStrokeColor="transparent" /></ReactFlow><div className="canvas-key"><span><i className="key-line" /> actuator direction</span><span><i className="key-dot" /> editable room</span></div></div></div>{inspectorOpen && <Inspector selectedNode={selectedNode} selectedEdge={selectedEdge} sourceNode={selectedSource ?? null} targetNode={selectedTarget ?? null} onUpdateNode={updateNodeData} onUpdateEdge={updateEdgeData} onUpdateBias={updateBias} onAddBiasField={addBiasField} onDelete={removeSelected} onAddNode={addNode} canEdit={canEdit} />}</div>
       </div>
       <footer className="app-footer"><span><span className="status-dot status-dot--accent" /> {nodes.length} rooms / {edges.length} actuators</span><span className="mono">{draftError || 'Drag rooms to arrange · connect handles to add an actuator'}</span><span className="mono">schema v1.0</span></footer>
     </main>
   );
 }
 
-function Inspector({ selectedNode, selectedEdge, sourceNode, targetNode, onUpdateNode, onUpdateEdge, onUpdateBias, onAddBiasField, onDelete, onAddNode }: { selectedNode: IcarusNode | null; selectedEdge: IcarusEdge | null; sourceNode: IcarusNode | null; targetNode: IcarusNode | null; onUpdateNode: (id: string, patch: Partial<GraphNodeData>) => void; onUpdateEdge: (id: string, patch: Partial<GraphEdgeData>) => void; onUpdateBias: (target: 'node' | 'edge', id: string, key: string, value: string) => void; onAddBiasField: (target: 'node' | 'edge', id: string) => void; onDelete: () => void; onAddNode: (preset: PresetId) => void }) {
-  if (selectedNode) return <div className="inspector-panel"><div className="inspector-heading"><div><span className="panel-kicker">Selected room / area</span><h2>{selectedNode.data.label}</h2></div><button className="icon-button" type="button" title="Delete room" aria-label="Delete room" onClick={onDelete}><Trash2 size={18} /></button></div><label className="field"><span>Name</span><input value={selectedNode.data.label} onChange={(event) => onUpdateNode(selectedNode.id, { label: event.target.value })} /></label><label className="field"><span>Preset</span><select value={selectedNode.data.preset} onChange={(event) => onUpdateNode(selectedNode.id, { preset: event.target.value as PresetId })}>{presetIds.map((preset) => <option key={preset} value={preset}>{presetDefinitions[preset].label}</option>)}</select></label><label className="field"><span>Notes</span><textarea value={selectedNode.data.notes} placeholder="What happens here?" onChange={(event) => onUpdateNode(selectedNode.id, { notes: event.target.value })} /></label><label className="field"><span>Tags</span><div className="input-with-icon"><Tag size={16} /><input value={selectedNode.data.tags.join(', ')} onChange={(event) => onUpdateNode(selectedNode.id, { tags: event.target.value.split(',').map((tag) => tag.trim()).filter(Boolean) })} /></div></label><BiasEditor target="node" id={selectedNode.id} bias={selectedNode.data.bias} onUpdateBias={onUpdateBias} onAddBiasField={onAddBiasField} /></div>;
-  if (selectedEdge && sourceNode && targetNode) return <div className="inspector-panel"><div className="inspector-heading"><div><span className="panel-kicker">Selected actuator</span><h2>{sourceNode.data.label} → {targetNode.data.label}</h2></div><button className="icon-button" type="button" title="Delete actuator" aria-label="Delete actuator" onClick={onDelete}><Trash2 size={18} /></button></div><div className="route-summary"><span>{sourceNode.data.label}</span><ArrowRight size={16} /><span>{targetNode.data.label}</span></div><label className="field"><span>Actuator label</span><input value={selectedEdge.data?.label ?? 'Airflow actuator'} onChange={(event) => onUpdateEdge(selectedEdge.id, { label: event.target.value })} /></label><label className="field"><span>Notes</span><textarea value={selectedEdge.data?.notes ?? ''} placeholder="What does this actuator control?" onChange={(event) => onUpdateEdge(selectedEdge.id, { notes: event.target.value })} /></label><label className="field"><span>Tags</span><div className="input-with-icon"><Tag size={16} /><input value={selectedEdge.data?.tags.join(', ') ?? ''} onChange={(event) => onUpdateEdge(selectedEdge.id, { tags: event.target.value.split(',').map((tag) => tag.trim()).filter(Boolean) })} /></div></label><BiasEditor target="edge" id={selectedEdge.id} bias={selectedEdge.data?.bias ?? {}} onUpdateBias={onUpdateBias} onAddBiasField={onAddBiasField} /></div>;
-  return <div className="inspector-panel inspector-panel--empty"><div className="empty-inspector-icon"><Settings2 size={22} /></div><h2>Shape the system</h2><p>Select a room or actuator to edit its notes, tags, and bias fields. Add a preset room when the layout needs to grow.</p><div className="add-node-list"><span className="panel-kicker">Add a room</span><div className="preset-buttons">{presetIds.map((preset) => <button key={preset} type="button" className="preset-button" onClick={() => onAddNode(preset)}><Plus size={16} /><span><strong>{presetDefinitions[preset].label}</strong><small>{presetDefinitions[preset].description}</small></span></button>)}</div></div></div>;
+function Inspector({ selectedNode, selectedEdge, sourceNode, targetNode, onUpdateNode, onUpdateEdge, onUpdateBias, onAddBiasField, onDelete, onAddNode, canEdit }: { selectedNode: IcarusNode | null; selectedEdge: IcarusEdge | null; sourceNode: IcarusNode | null; targetNode: IcarusNode | null; onUpdateNode: (id: string, patch: Partial<GraphNodeData>) => void; onUpdateEdge: (id: string, patch: Partial<GraphEdgeData>) => void; onUpdateBias: (target: 'node' | 'edge', id: string, key: string, value: string) => void; onAddBiasField: (target: 'node' | 'edge', id: string) => void; onDelete: () => void; onAddNode: (preset: PresetId) => void; canEdit: boolean }) {
+  if (selectedNode) return <div className="inspector-panel"><div className="inspector-heading"><div><span className="panel-kicker">Selected room / area</span><h2>{selectedNode.data.label}</h2></div><button className="icon-button" type="button" title="Delete room" aria-label="Delete room" disabled={!canEdit} onClick={onDelete}><Trash2 size={18} /></button></div><label className="field"><span>Name</span><input disabled={!canEdit} value={selectedNode.data.label} onChange={(event) => onUpdateNode(selectedNode.id, { label: event.target.value })} /></label><label className="field"><span>Preset</span><select disabled={!canEdit} value={selectedNode.data.preset} onChange={(event) => onUpdateNode(selectedNode.id, { preset: event.target.value as PresetId })}>{presetIds.map((preset) => <option key={preset} value={preset}>{presetDefinitions[preset].label}</option>)}</select></label><label className="field"><span>Notes</span><textarea disabled={!canEdit} value={selectedNode.data.notes} placeholder="What happens here?" onChange={(event) => onUpdateNode(selectedNode.id, { notes: event.target.value })} /></label><label className="field"><span>Tags</span><div className="input-with-icon"><Tag size={16} /><input disabled={!canEdit} value={selectedNode.data.tags.join(', ')} onChange={(event) => onUpdateNode(selectedNode.id, { tags: event.target.value.split(',').map((tag) => tag.trim()).filter(Boolean) })} /></div></label><BiasEditor target="node" id={selectedNode.id} bias={selectedNode.data.bias} onUpdateBias={onUpdateBias} onAddBiasField={onAddBiasField} canEdit={canEdit} /></div>;
+  if (selectedEdge && sourceNode && targetNode) return <div className="inspector-panel"><div className="inspector-heading"><div><span className="panel-kicker">Selected actuator</span><h2>{sourceNode.data.label} → {targetNode.data.label}</h2></div><button className="icon-button" type="button" title="Delete actuator" aria-label="Delete actuator" disabled={!canEdit} onClick={onDelete}><Trash2 size={18} /></button></div><div className="route-summary"><span>{sourceNode.data.label}</span><ArrowRight size={16} /><span>{targetNode.data.label}</span></div><label className="field"><span>Actuator label</span><input disabled={!canEdit} value={selectedEdge.data?.label ?? 'Airflow actuator'} onChange={(event) => onUpdateEdge(selectedEdge.id, { label: event.target.value })} /></label><label className="field"><span>Notes</span><textarea disabled={!canEdit} value={selectedEdge.data?.notes ?? ''} placeholder="What does this actuator control?" onChange={(event) => onUpdateEdge(selectedEdge.id, { notes: event.target.value })} /></label><label className="field"><span>Tags</span><div className="input-with-icon"><Tag size={16} /><input disabled={!canEdit} value={selectedEdge.data?.tags.join(', ') ?? ''} onChange={(event) => onUpdateEdge(selectedEdge.id, { tags: event.target.value.split(',').map((tag) => tag.trim()).filter(Boolean) })} /></div></label><BiasEditor target="edge" id={selectedEdge.id} bias={selectedEdge.data?.bias ?? {}} onUpdateBias={onUpdateBias} onAddBiasField={onAddBiasField} canEdit={canEdit} /></div>;
+  return <div className="inspector-panel inspector-panel--empty"><div className="empty-inspector-icon"><Settings2 size={22} /></div><h2>Shape the system</h2><p>{canEdit ? 'Select a room or actuator to edit its notes, tags, and bias fields. Add a preset room when the layout needs to grow.' : 'This is a public read-only view. Sign in with an approved GitHub account to edit the topology.'}</p><div className="add-node-list"><span className="panel-kicker">Add a room</span><div className="preset-buttons">{presetIds.map((preset) => <button key={preset} type="button" className="preset-button" disabled={!canEdit} onClick={() => onAddNode(preset)}><Plus size={16} /><span><strong>{presetDefinitions[preset].label}</strong><small>{presetDefinitions[preset].description}</small></span></button>)}</div></div></div>;
 }
 
-function BiasEditor({ target, id, bias, onUpdateBias, onAddBiasField }: { target: 'node' | 'edge'; id: string; bias: Bias; onUpdateBias: (target: 'node' | 'edge', id: string, key: string, value: string) => void; onAddBiasField: (target: 'node' | 'edge', id: string) => void }) {
-  return <div className="bias-editor"><div className="bias-heading"><span><SlidersHorizontal size={16} /> Bias fields</span><button type="button" className="text-button" onClick={() => onAddBiasField(target, id)}><Plus size={14} /> Add field</button></div>{Object.entries(bias).map(([key, value]) => <label className="bias-field" key={key}><span>{formatKey(key)}</span><input value={formatBiasValue(value)} onChange={(event) => onUpdateBias(target, id, key, event.target.value)} /></label>)}</div>;
+function BiasEditor({ target, id, bias, onUpdateBias, onAddBiasField, canEdit }: { target: 'node' | 'edge'; id: string; bias: Bias; onUpdateBias: (target: 'node' | 'edge', id: string, key: string, value: string) => void; onAddBiasField: (target: 'node' | 'edge', id: string) => void; canEdit: boolean }) {
+  return <div className="bias-editor"><div className="bias-heading"><span><SlidersHorizontal size={16} /> Bias fields</span><button disabled={!canEdit} type="button" className="text-button" onClick={() => onAddBiasField(target, id)}><Plus size={14} /> Add field</button></div>{Object.entries(bias).map(([key, value]) => <label className="bias-field" key={key}><span>{formatKey(key)}</span><input disabled={!canEdit} value={formatBiasValue(value)} onChange={(event) => onUpdateBias(target, id, key, event.target.value)} /></label>)}</div>;
 }

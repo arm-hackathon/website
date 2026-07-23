@@ -65,6 +65,40 @@
   flex-wrap: wrap;
 }
 
+.editor-access {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 38px;
+  padding: 0 11px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--paper-deep);
+  color: var(--ink-muted);
+  font: 11px 'IBM Plex Mono', monospace;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.editor-access:not(.editor-access--unavailable) {
+  cursor: pointer;
+}
+
+.editor-access:not(.editor-access--unavailable):hover {
+  border-color: var(--accent);
+  color: var(--accent-deep);
+}
+
+.editor-access.is-authorized {
+  border-color: color-mix(in srgb, var(--signal) 38%, var(--line));
+  background: color-mix(in srgb, var(--signal) 10%, var(--paper-deep));
+  color: var(--signal);
+}
+
+.editor-access--unavailable {
+  opacity: 0.78;
+}
+
 .connections-page .toolbar-group {
   display: inline-flex;
   align-items: center;
@@ -434,6 +468,16 @@
 .connections-page .toolbar-search input {
   width: 100%;
   font-size: 12px;
+}
+
+.connections-page button:disabled,
+.connections-page input:read-only {
+  cursor: not-allowed;
+  opacity: 0.52;
+}
+
+.connections-page .document-control.is-read-only {
+  background: color-mix(in srgb, var(--paper-deep) 72%, transparent);
 }
 
 .connections-page .secondary-button,
