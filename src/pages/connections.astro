@@ -1,0 +1,11 @@
+\---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import ConnectionsWorkspace from '../components/ConnectionsWorkspace';
+---
+
+<BaseLayout
+  title="ICARUS / Connections"
+  description="Inspect habitat rooms and actuator connections for the ICARUS Physical AI simulation interface."
+>
+  <ConnectionsWorkspace client:load />
+</BaseLayout>

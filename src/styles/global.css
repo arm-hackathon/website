@@ -1,0 +1,114 @@
+@import '@fontsource-variable/space-grotesk';
+@import '@fontsource/ibm-plex-mono';
+
+:root {
+  --paper: #f2f0ea;
+  --paper-deep: #e5e1d8;
+  --ink: #202326;
+  --ink-muted: #747871;
+  --line: rgba(32, 35, 38, 0.15);
+  --line-strong: rgba(32, 35, 38, 0.28);
+  --panel: rgba(255, 255, 255, 0.62);
+  --panel-strong: rgba(255, 255, 255, 0.85);
+  --surface-solid: #fbfaf6;
+  --canvas: #eae8e1;
+  --grid: rgba(55, 62, 62, 0.08);
+  --accent: #cf6e3e;
+  --accent-deep: #a84e29;
+  --accent-soft: rgba(207, 110, 62, 0.14);
+  --signal: #2e9b76;
+  --shadow: 0 24px 70px rgba(59, 57, 48, 0.13);
+}
+
+:root[data-theme='dark'] {
+  --paper: #171a1c;
+  --paper-deep: #202427;
+  --ink: #ebede9;
+  --ink-muted: #89918f;
+  --line: rgba(235, 237, 233, 0.12);
+  --line-strong: rgba(235, 237, 233, 0.25);
+  --panel: rgba(34, 39, 41, 0.8);
+  --panel-strong: rgba(39, 45, 47, 0.96);
+  --surface-solid: #1e2325;
+  --canvas: #202527;
+  --grid: rgba(210, 218, 213, 0.07);
+  --accent: #e28a56;
+  --accent-deep: #f0a171;
+  --accent-soft: rgba(226, 138, 86, 0.16);
+  --signal: #64c59b;
+  --shadow: 0 24px 70px rgba(0, 0, 0, 0.26);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-width: 320px;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: 'Space Grotesk Variable', sans-serif;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  min-width: 320px;
+  min-height: 100dvh;
+  margin: 0;
+  background:
+    linear-gradient(115deg, rgba(255, 255, 255, 0.025), transparent 44%),
+    var(--paper);
+  color: var(--ink);
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button {
+  color: inherit;
+}
+
+::selection {
+  background: var(--accent);
+  color: #fffaf4;
+}
+
+[data-reveal] {
+  opacity: 0;
+  transform: translateY(18px);
+  animation: reveal 0.85s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+[data-reveal='2'] {
+  animation-delay: 0.1s;
+}
+
+[data-reveal='3'] {
+  animation-delay: 0.18s;
+}
+
+@keyframes reveal {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
