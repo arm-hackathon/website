@@ -72,7 +72,7 @@ export const GET: APIRoute = async ({ request, url }) => {
 export const POST: APIRoute = async ({ request }) => {
   const editor = await getEditorAccess(request);
   if (!editor.configured) return json({ configured: false, message: 'Editor authentication is not configured.', editor }, 503);
-  if (!editor.canEdit) return json({ configured: true, message: 'Sign in with an approved GitHub account to edit shared drafts.', editor }, 401);
+  if (!editor.canEdit) return json({ configured: true, message: 'Sign in with an approved GitHub or Google account to edit shared drafts.', editor }, 401);
   if (!hasStorageCredentials()) {
     return json({ configured: false, message: 'Add a Vercel Blob store before synchronising.', editor }, 503);
   }
@@ -106,7 +106,7 @@ export const POST: APIRoute = async ({ request }) => {
 export const DELETE: APIRoute = async ({ request, url }) => {
   const editor = await getEditorAccess(request);
   if (!editor.configured) return json({ configured: false, message: 'Editor authentication is not configured.', editor }, 503);
-  if (!editor.canEdit) return json({ configured: true, message: 'Sign in with an approved GitHub account to edit shared drafts.', editor }, 401);
+  if (!editor.canEdit) return json({ configured: true, message: 'Sign in with an approved GitHub or Google account to edit shared drafts.', editor }, 401);
   if (!hasStorageCredentials()) {
     return json({ configured: false, message: 'Vercel Blob is not configured.', editor }, 503);
   }

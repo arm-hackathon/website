@@ -1,35 +1,36 @@
 import { Auth, type AuthConfig } from '@auth/core';
 import GitHub from '@auth/core/providers/github';
+import Google from '@auth/core/providers/google';
 
 export type EditorSession = {
-  username: string;
+  email: string;
 };
 
 export type EditorAccess = {
   configured: boolean;
   authenticated: boolean;
   canEdit: boolean;
-  username?: string;
+  email?: string;
   signInUrl?: string;
 };
 
-function allowedUsernames(): Set<string> {
+function allowedEmails(): Set<string> {
   return new Set(
-    (process.env.AUTH_ALLOWED_USERNAMES ?? '')
+    (process.env.AUTH_ALLOWED_EMAILS ?? '')
       .split(',')
-      .map((username) => username.trim().toLowerCase())
+      .map((email) => email.trim().toLowerCase())
       .filter(Boolean),
   );
 }
 
-function profileUsername(profile: unknown): string | null {
+function profileEmail(profile: unknown): string | null {
   if (!profile || typeof profile !== 'object') return null;
-  const login = (profile as { login?: unknown }).login;
-  return typeof login === 'string' && login.trim() ? login.trim() : null;
+  const email = (profile as { email?: unknown }).email;
+  return typeof email === 'string' && email.trim() ? email.trim().toLowerCase() : null;
 }
 
-export function isAllowedUsername(username: string): boolean {
-  return allowedUsernames().has(username.trim().toLowerCase());
+export function isAllowedEmail(email: string): boolean {
+  return allowedEmails().has(email.trim().toLowerCase());
 }
 
 export function isEditorAuthConfigured(): boolean {
@@ -37,7 +38,9 @@ export function isEditorAuthConfigured(): boolean {
     process.env.AUTH_SECRET
       && process.env.AUTH_GITHUB_ID
       && process.env.AUTH_GITHUB_SECRET
-      && allowedUsernames().size,
+      && process.env.AUTH_GOOGLE_ID
+      && process.env.AUTH_GOOGLE_SECRET
+      && allowedEmails().size,
   );
 }
 
@@ -45,23 +48,23 @@ export const authConfig: AuthConfig = {
   basePath: '/api/auth',
   trustHost: true,
   secret: process.env.AUTH_SECRET,
-  providers: [GitHub],
+  providers: [GitHub, Google],
   pages: {
     error: '/connections?auth=denied',
   },
   callbacks: {
     async signIn({ profile }) {
-      const username = profileUsername(profile);
-      return Boolean(username && isAllowedUsername(username));
+      const email = profileEmail(profile);
+      return Boolean(email && isAllowedEmail(email));
     },
     async jwt({ token, profile }) {
-      const username = profileUsername(profile);
-      if (username) (token as Record<string, unknown>).githubUsername = username;
+      const email = profileEmail(profile);
+      if (email) (token as Record<string, unknown>).editorEmail = email;
       return token;
     },
     async session({ session, token }) {
-      const username = (token as Record<string, unknown>).githubUsername;
-      if (session.user && typeof username === 'string') session.user.name = username;
+      const email = (token as Record<string, unknown>).editorEmail;
+      if (session.user && typeof email === 'string') session.user.email = email;
       return session;
     },
   },
@@ -79,16 +82,16 @@ export async function getEditorSession(request: Request): Promise<EditorSession 
     }), authConfig);
     if (!response.ok) return null;
 
-    const payload = await response.json() as { user?: { name?: unknown } };
-    const username = typeof payload.user?.name === 'string' ? payload.user.name : '';
-    return isAllowedUsername(username) ? { username } : null;
+    const payload = await response.json() as { user?: { email?: unknown } };
+    const email = typeof payload.user?.email === 'string' ? payload.user.email : '';
+    return isAllowedEmail(email) ? { email } : null;
   } catch {
     return null;
   }
 }
 
 export function editorSignInUrl(request: Request): string {
-  const url = new URL('/api/auth/signin/github', request.url);
+  const url = new URL('/api/auth/signin', request.url);
   url.searchParams.set('callbackUrl', new URL('/connections', request.url).toString());
   return url.toString();
 }
@@ -102,7 +105,7 @@ export async function getEditorAccess(request: Request): Promise<EditorAccess> {
     configured: true,
     authenticated: Boolean(session),
     canEdit: Boolean(session),
-    ...(session ? { username: session.username } : {}),
+    ...(session ? { email: session.email } : {}),
     signInUrl: editorSignInUrl(request),
   };
 }

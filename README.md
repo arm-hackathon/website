@@ -33,7 +33,7 @@ The web experience gives the team a shared visual language for the proof loop be
 - **Editable domain bias** - configure occupants, generation, capacity, effectiveness, commandability, notes, and tags.
 - **Draft workflow** - save named drafts locally, import/export versioned JSON, reset changes, and delete drafts with confirmation.
 - **Optional shared drafts** - synchronise through a private Vercel Blob store when deployment storage is connected.
-- **Whitelist editor access** - the site can stay public while GitHub OAuth limits synchronise and delete actions to approved usernames.
+- **Whitelist editor access** - the site can stay public while GitHub or Google OAuth limits synchronise and delete actions to approved email addresses.
 - **Responsive interface** - usable on desktop, 4K displays, tablets, and mobile widths with labelled controls.
 - **Clear roadmap states** - Live system, Scenarios, Telemetry, and Benchmarks are visible as planned layers rather than presented as finished functionality.
 
@@ -143,8 +143,8 @@ npx astro dev stop
 The website is designed for public viewing. Reading the topology does not require an account. Shared mutations are protected separately:
 
 - `GET /api/topology` remains public so visitors can see the current draft list and load a topology.
-- `POST /api/topology` and `DELETE /api/topology` require an authenticated GitHub session.
-- The authenticated GitHub login must appear in `AUTH_ALLOWED_USERNAMES`.
+- `POST /api/topology` and `DELETE /api/topology` require an authenticated GitHub or Google session.
+- The authenticated account email must appear in `AUTH_ALLOWED_EMAILS`.
 - The browser disables editing controls for public visitors, but the API is the real security boundary.
 
 Configure these variables in the deployment environment:
@@ -153,16 +153,19 @@ Configure these variables in the deployment environment:
 AUTH_SECRET=
 AUTH_GITHUB_ID=
 AUTH_GITHUB_SECRET=
-AUTH_ALLOWED_USERNAMES=github_username_one,github_username_two
+AUTH_GOOGLE_ID=
+AUTH_GOOGLE_SECRET=
+AUTH_ALLOWED_EMAILS=editor.one@gmail.com,editor.two@gmail.com
 ```
 
-Create a GitHub OAuth App with this callback URL:
+Create GitHub and Google OAuth apps with these callback URLs:
 
 ```text
 https://your-domain.example/api/auth/callback/github
+https://your-domain.example/api/auth/callback/google
 ```
 
-For the current Vercel domain, use the stable project domain rather than a deployment-specific preview URL. Keep `AUTH_SECRET`, `AUTH_GITHUB_SECRET`, and the Blob credentials private. `AUTH_ALLOWED_USERNAMES` is a comma-separated list of GitHub login names, not display names or email addresses.
+For the current Vercel domain, use the stable project domain rather than a deployment-specific preview URL. Keep `AUTH_SECRET`, both OAuth client secrets, and the Blob credentials private. `AUTH_ALLOWED_EMAILS` is a comma-separated list of exact email addresses. The sign-in page intentionally exposes only GitHub and Google.
 
 ## Safety boundary
 

@@ -143,7 +143,7 @@ export default function ConnectionsWorkspace() {
 
   useEffect(() => {
     const raw = window.localStorage.getItem('icarus-graph-draft');
-    if (new URLSearchParams(window.location.search).get('auth') === 'denied') setNotice('This GitHub account is not on the editor allowlist');
+    if (new URLSearchParams(window.location.search).get('auth') === 'denied') setNotice('This account is not on the editor allowlist');
     if (raw) {
       try {
         const localDocument = parseGraphDocument(JSON.parse(raw));
@@ -237,7 +237,7 @@ export default function ConnectionsWorkspace() {
 
   async function deleteDraft(name: string) {
     if (!canEdit) {
-      setNotice('Sign in with an approved GitHub account to edit shared drafts');
+      setNotice('Sign in with an approved GitHub or Google account to edit shared drafts');
       return;
     }
     let serverUnavailable = false;
@@ -443,7 +443,7 @@ export default function ConnectionsWorkspace() {
 
   function importGraph(event: ChangeEvent<HTMLInputElement>) {
     if (!canEdit) {
-      setNotice('Sign in with an approved GitHub account to edit topology');
+      setNotice('Sign in with an approved GitHub or Google account to edit topology');
       event.target.value = '';
       return;
     }
@@ -471,7 +471,7 @@ export default function ConnectionsWorkspace() {
 
   async function synchronise() {
     if (!canEdit) {
-      setNotice('Sign in with an approved GitHub account to synchronise drafts');
+      setNotice('Sign in with an approved GitHub or Google account to synchronise drafts');
       return;
     }
     setSyncState('syncing');
@@ -536,12 +536,12 @@ export default function ConnectionsWorkspace() {
             <div className="toolbar-group">
               <button className="secondary-button" type="button" disabled={!canEdit} title="Discard your unsaved local changes and reload the last synchronised server version" onClick={resetCurrentChanges}><History size={16} /> Reset current changes</button>
               <button className="secondary-button secondary-button--danger" type="button" disabled={!canEdit} title="Discard every room and actuator and return to the default topology" onClick={() => setConfirmResetAll(true)}><TriangleAlert size={16} /> Reset all changes</button>
-              <button className="primary-button" type="button" title={canEdit ? 'Synchronise the server with the current draft' : 'Sign in with an approved GitHub account to synchronise'} disabled={!canEdit || syncState === 'syncing'} onClick={requestSynchronise}><CloudUpload size={16} /> Synchronise</button>
+              <button className="primary-button" type="button" title={canEdit ? 'Synchronise the server with the current draft' : 'Sign in with an approved GitHub or Google account to synchronise'} disabled={!canEdit || syncState === 'syncing'} onClick={requestSynchronise}><CloudUpload size={16} /> Synchronise</button>
             </div>
             <div className="toolbar-group">
               <button className="icon-button" type="button" aria-label={inspectorOpen ? 'Hide inspector panel' : 'Show inspector panel'} title={inspectorOpen ? 'Hide inspector panel' : 'Show inspector panel'} aria-pressed={inspectorOpen} onClick={toggleInspector}>{inspectorOpen ? <PanelRightClose size={17} /> : <PanelRight size={17} />}</button>
               <button className="icon-button" type="button" aria-label="Export topology" title="Export topology JSON" onClick={exportGraph}><Download size={17} /></button>
-              <button className="icon-button" type="button" aria-label="Import topology" title={canEdit ? 'Import topology JSON' : 'Sign in with an approved GitHub account to import topology'} disabled={!canEdit} onClick={() => fileInputRef.current?.click()}><Upload size={17} /></button>
+              <button className="icon-button" type="button" aria-label="Import topology" title={canEdit ? 'Import topology JSON' : 'Sign in with an approved GitHub or Google account to import topology'} disabled={!canEdit} onClick={() => fileInputRef.current?.click()}><Upload size={17} /></button>
               <input ref={fileInputRef} className="visually-hidden" type="file" accept="application/json,.json" onChange={importGraph} />
             </div>
           </div>

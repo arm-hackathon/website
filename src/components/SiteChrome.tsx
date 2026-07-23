@@ -60,8 +60,8 @@ export default function SiteChrome({ activePage, syncState, editorAccess }: { ac
             })}
           </div>
           {editorAccess && (editorAccess.canEdit
-            ? <span className="topbar-editor-access topbar-editor-access--authorized" title={`Editing as @${editorAccess.username}`}><UserRoundCheck size={15} /><span>@{editorAccess.username}</span></span>
-            : <a className="topbar-editor-access" href={editorAccess.signInUrl ?? '/api/auth/signin/github?callbackUrl=%2Fconnections'} title="Sign in with an approved GitHub account to edit"><LockKeyhole size={15} /><span>Sign in</span><LogIn size={14} /></a>)}
+            ? <span className="topbar-editor-access topbar-editor-access--authorized" title={`Editing as ${editorAccess.email}`}><UserRoundCheck size={15} /><span>Editor</span></span>
+            : <a className="topbar-editor-access" href={editorAccess.signInUrl ?? '/api/auth/signin?callbackUrl=%2Fconnections'} title="Sign in with GitHub or Google to edit"><LockKeyhole size={15} /><span>Sign in</span><LogIn size={14} /></a>)}
           <button type="button" className="help-button" onClick={() => setGuideOpen(true)}><span className="help-mark">?</span><span>Guide</span></button>
         </div>
       </header>
