@@ -105,6 +105,7 @@ icarus-web/
 │   ├── pages/              # Routes and /api/topology
 │   └── styles/             # Global theme tokens and typography
 ├── .env.example            # Safe environment variable names only
+├── .env.local.example      # Local OAuth setup template, no real secrets
 ├── astro.config.mjs        # Astro and Vercel adapter configuration
 ├── package.json
 └── README.md
@@ -123,6 +124,10 @@ npm run dev -- --host 127.0.0.1 --port 4321
 ```
 
 Open `http://127.0.0.1:4321`. The website works without a backend. Drafts use browser storage, JSON import/export remains available, and the shared API reports that Blob storage is not configured until credentials are added.
+
+### Local sign-in setup
+
+The sign-in chooser requires `AUTH_SECRET`. A real GitHub or Google sign-in also requires OAuth app credentials. Copy `.env.local.example` to `.env.local`, fill in the credentials, and register both callback URLs with the providers. Keep `.env.local` private.
 
 Before sharing a change, run the production checks:
 
@@ -157,6 +162,8 @@ AUTH_GOOGLE_ID=
 AUTH_GOOGLE_SECRET=
 AUTH_ALLOWED_EMAILS=editor.one@gmail.com,editor.two@gmail.com
 ```
+
+Use `AUTH_URL=https://icarus-theta-five.vercel.app` in Vercel. For local development, use `AUTH_URL=http://127.0.0.1:4321`.
 
 Create GitHub and Google OAuth apps with these callback URLs:
 

@@ -50,7 +50,7 @@ export const authConfig: AuthConfig = {
   secret: process.env.AUTH_SECRET,
   providers: [GitHub, Google],
   pages: {
-    error: '/connections?auth=denied',
+    error: '/connections',
   },
   callbacks: {
     async signIn({ profile }) {
@@ -92,7 +92,7 @@ export async function getEditorSession(request: Request): Promise<EditorSession 
 
 export function editorSignInUrl(request: Request): string {
   const url = new URL('/api/auth/signin', request.url);
-  url.searchParams.set('callbackUrl', new URL('/connections', request.url).toString());
+  url.searchParams.set('callbackUrl', '/connections');
   return url.toString();
 }
 

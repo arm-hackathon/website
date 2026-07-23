@@ -143,7 +143,9 @@ export default function ConnectionsWorkspace() {
 
   useEffect(() => {
     const raw = window.localStorage.getItem('icarus-graph-draft');
-    if (new URLSearchParams(window.location.search).get('auth') === 'denied') setNotice('This account is not on the editor allowlist');
+    const query = new URLSearchParams(window.location.search);
+    if (query.get('auth') === 'denied') setNotice('This account is not on the editor allowlist');
+    if (query.get('error') === 'Configuration') setNotice('Sign-in needs OAuth credentials in the local environment');
     if (raw) {
       try {
         const localDocument = parseGraphDocument(JSON.parse(raw));
@@ -512,7 +514,7 @@ export default function ConnectionsWorkspace() {
 
   function requestSynchronise() {
     if (!canEdit) {
-      setNotice('Sign in with an approved GitHub account to synchronise drafts');
+      setNotice('Sign in with an approved GitHub or Google account to synchronise drafts');
       return;
     }
     const error = validateDraft();
