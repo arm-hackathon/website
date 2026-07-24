@@ -189,10 +189,16 @@ export default function ConnectionsWorkspace() {
         const payload = await response.json();
         if (cancelled) return;
         if (payload.editor) setEditorAccess(payload.editor as EditorAccess);
-        if (payload.drafts) {
+        if (payload.drafts && (payload.drafts as string[]).length > 0) {
           setDraftNames(payload.drafts);
-          const localName = window.localStorage.getItem('icarus-active-draft') ?? '';
-          if (localName && payload.drafts.includes(localName)) await loadDraft(localName);
+          const savedName = window.localStorage.getItem('icarus-active-draft') ?? '';
+          // Always load from server on page open so all users see the latest
+          // shared state. Prefer the previously active draft if it still exists
+          // on the server, otherwise fall back to the first available draft.
+          const nameToLoad = (payload.drafts as string[]).includes(savedName)
+            ? savedName
+            : (payload.drafts as string[])[0];
+          await loadDraft(nameToLoad);
         }
         // Server not configured / not reachable: keep `synced` because we have
         // no dirty edits at this point. Real failure feedback is in the notice.
