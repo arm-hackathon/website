@@ -137,9 +137,9 @@
   color: var(--node-color, var(--ink-muted));
 }
 
-/* Connections is edge-anchored to the circular boundary so its wide label
-   remains fully visible without drifting toward the centre of the map. */
-.signal-node--connections { top: 30%; left: 0; transform: translate(0, -50%); --node-color: #8a63c4; }
+/* At top: 30%, the outer 47% orbit intersects the left side at 7.5%.
+   Centre the badge on that point so its anchor remains on the ring. */
+.signal-node--connections { top: 30%; left: 7.5%; transform: translate(-50%, -50%); --node-color: #8a63c4; }
 .signal-node--live        { top: 22%; left: 76%; transform: translate(-50%, -50%); --node-color: #00a9ce; }
 .signal-node--scenarios   { top: 76%; left: 69%; transform: translate(-50%, -50%); --node-color: #526fc2; }
 .signal-node--telemetry   { top: 70%; left: 36%; transform: translate(-50%, -50%); --node-color: #2e9b76; }
