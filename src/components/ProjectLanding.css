@@ -35,10 +35,10 @@
   border-radius: 50%;
 }
 
-.orbit-1 { inset: 33%; --orbit-color: color-mix(in srgb, #cf6e3e 55%, transparent); animation: signal-rotate 26s linear infinite; }
+.orbit-1 { inset: 33%; --orbit-color: color-mix(in srgb, #0077c8 55%, transparent); animation: signal-rotate 26s linear infinite; }
 .orbit-2 { inset: 25.5%; --orbit-color: color-mix(in srgb, #2e9b76 55%, transparent); animation: signal-rotate 34s linear infinite reverse; }
 .orbit-3 { inset: 18%; --orbit-color: color-mix(in srgb, #4f83c2 55%, transparent); animation: signal-rotate 42s linear infinite; }
-.orbit-4 { inset: 10.5%; --orbit-color: color-mix(in srgb, #b5843a 55%, transparent); animation: signal-rotate 50s linear infinite reverse; }
+.orbit-4 { inset: 10.5%; --orbit-color: color-mix(in srgb, #00a9ce 55%, transparent); animation: signal-rotate 50s linear infinite reverse; }
 .orbit-5 { inset: 3%; --orbit-color: color-mix(in srgb, #8a63c4 55%, transparent); animation: signal-rotate 60s linear infinite; }
 
 .signal-orbit::after {
@@ -54,10 +54,10 @@
   box-shadow: 0 0 0 5px color-mix(in srgb, var(--dot-color) 22%, transparent), 0 0 16px 3px color-mix(in srgb, var(--dot-color) 70%, transparent);
 }
 
-.orbit-1::after { --dot-color: #cf6e3e; }
+.orbit-1::after { --dot-color: #0077c8; }
 .orbit-2::after { --dot-color: #2e9b76; }
 .orbit-3::after { --dot-color: #4f83c2; }
-.orbit-4::after { --dot-color: #d69a34; }
+.orbit-4::after { --dot-color: #00a9ce; }
 .orbit-5::after { --dot-color: #8a63c4; }
 
 @keyframes signal-rotate {
@@ -143,10 +143,10 @@
    5 → 47%. Position math: left = 50 + R*cos(θ), top = 50 − R*sin(θ). The five
    nodes are arranged as a pentagon (72° apart) with Connections on top. */
 .signal-node--connections { top: 36.5%; left: 5%; transform: translate(-50%, -50%); --node-color: #8a63c4; }
-.signal-node--live        { top: 22%; left: 76%; transform: translate(-50%, -50%); --node-color: #d69a34; }
+.signal-node--live        { top: 22%; left: 76%; transform: translate(-50%, -50%); --node-color: #00a9ce; }
 .signal-node--scenarios   { top: 76%; left: 69%; transform: translate(-50%, -50%); --node-color: #4f83c2; }
 .signal-node--telemetry   { top: 70%; left: 36%; transform: translate(-50%, -50%); --node-color: #2e9b76; }
-.signal-node--benchmarks  { top: 33%; left: 50%; transform: translate(-50%, -50%); --node-color: #cf6e3e; }
+.signal-node--benchmarks  { top: 33%; left: 50%; transform: translate(-50%, -50%); --node-color: #0077c8; }
 
 .signal-node.is-active {
   border-color: color-mix(in srgb, var(--accent) 60%, var(--line));
@@ -214,7 +214,7 @@
   border: 1px solid var(--accent);
   border-radius: 10px;
   background: var(--accent);
-  color: #fff8f1;
+  color: #f7fbff;
   font-size: 14px;
   font-weight: 600;
   transition: transform 180ms ease, background 180ms ease;

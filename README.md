@@ -1,14 +1,14 @@
-# ICARUS Web
+# AEOLUS Web
 
 ### Arm Create 2026 | Physical AI track
 
-> A visible, editable interface for the ICARUS ventilation simulation: define a habitat topology now, then connect it to local fault inference and bounded virtual recovery.
+> A visible, editable interface for the AEOLUS ventilation simulation: define a habitat topology now, then connect it to local fault inference and bounded virtual recovery.
 
 [![Built with Astro](https://img.shields.io/badge/built_with-Astro-ff5d01?logo=astro&logoColor=white)](https://astro.build/)
 [![React](https://img.shields.io/badge/UI-React-149eca?logo=react&logoColor=white)](https://react.dev/)
 [![Physical AI](https://img.shields.io/badge/track-Physical_AI-2e9b76)](https://arm-ai-optimization-challenge.devpost.com/)
 
-ICARUS is a simulation-first Physical AI prototype for the Arm Create AI Optimization Challenge 2026. This repository contains the standalone web interface. Its first live layer is **Connections**, a graph workspace where the team can define rooms, processing areas, and directed airflow actuators before the topology is consumed by the Python simulation.
+AEOLUS is a simulation-first Physical AI prototype for the Arm Create AI Optimization Challenge 2026. This repository contains the standalone web interface. Its first live layer is **Connections**, a graph workspace where the team can define rooms, processing areas, and directed airflow actuators before the topology is consumed by the Python simulation.
 
 The interface makes the future control loop tangible:
 
@@ -20,9 +20,9 @@ simulated plant -> telemetry -> local fault inference -> safety governor -> boun
 
 The current website is deliberately honest about its boundary: it edits a versioned simulation topology. It does not control real spacecraft, life-support, HVAC, or production equipment.
 
-## Why ICARUS
+## Why AEOLUS
 
-Physical AI systems are easier to trust when their environment, signals, decisions, and recovery actions can be inspected together. ICARUS starts with the system map itself. A room is not just a label, and an actuator is not just a line on a diagram: both carry configurable domain bias that the later plant model and safety logic can consume.
+Physical AI systems are easier to trust when their environment, signals, decisions, and recovery actions can be inspected together. AEOLUS starts with the system map itself. A room is not just a label, and an actuator is not just a line on a diagram: both carry configurable domain bias that the later plant model and safety logic can consume.
 
 The web experience gives the team a shared visual language for the proof loop before model inference and Arm benchmark evidence are added.
 
@@ -96,7 +96,7 @@ Stable IDs, editable labels, directional connections, configurable bias, and a s
 ## Project structure
 
 ```text
-icarus-web/
+aeolus-web/
 ├── public/                 # Public project brief and static assets
 ├── src/
 │   ├── components/         # React islands and interface styles
@@ -176,7 +176,7 @@ For the current Vercel domain, use the stable project domain rather than a deplo
 
 ## Safety boundary
 
-ICARUS is a research simulation for a hackathon. The values in the current model are abstract units, not spacecraft measurements or operational safety thresholds. Authentication limits shared draft writes, but the project still needs audit logging, stronger team administration, and optimistic concurrency before it should be used beyond a controlled demonstration.
+AEOLUS is a research simulation for a hackathon. The values in the current model are abstract units, not spacecraft measurements or operational safety thresholds. Authentication limits shared draft writes, but the project still needs audit logging, stronger team administration, and optimistic concurrency before it should be used beyond a controlled demonstration.
 
 ## Roadmap
 

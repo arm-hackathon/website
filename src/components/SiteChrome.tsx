@@ -46,9 +46,9 @@ export default function SiteChrome({ activePage, syncState, editorAccess }: { ac
       <header className="site-topbar">
         <div className="site-topbar__identity">
           <button type="button" className="chrome-menu-button" aria-label="Open navigation" title="Open navigation" onClick={() => setSidebarOpen((open) => !open)}><span /><span /><span /></button>
-          <a href="/" className="brand-lockup" aria-label="ICARUS home">
+          <a href="/" className="brand-lockup" aria-label="AEOLUS home">
             <span className="brand-mark" aria-hidden="true"><i /><i /><i /></span>
-            <span className="brand-text"><strong className="brand-name">ICARUS</strong><small>&nbsp;- Distributed habitat systems</small></span>
+            <span className="brand-text"><strong className="brand-name">AEOLUS</strong><small>&nbsp;- Distributed habitat systems</small></span>
           </a>
         </div>
         <div className="site-topbar__tools">
@@ -70,7 +70,7 @@ export default function SiteChrome({ activePage, syncState, editorAccess }: { ac
         <>
           <button className="chrome-scrim" type="button" aria-label="Close navigation" onClick={() => setSidebarOpen(false)} />
           <aside className="chrome-sidebar" aria-label="Project navigation">
-            <div className="chrome-sidebar__header"><span className="eyebrow">ICARUS / navigation</span><button type="button" className="icon-button" aria-label="Close navigation" onClick={() => setSidebarOpen(false)}>×</button></div>
+            <div className="chrome-sidebar__header"><span className="eyebrow">AEOLUS / navigation</span><button type="button" className="icon-button" aria-label="Close navigation" onClick={() => setSidebarOpen(false)}>×</button></div>
             <nav className="chrome-nav">
               <a href="/" className={!activePage ? 'is-active' : ''} onClick={() => setSidebarOpen(false)}><House size={17} /><span><strong>Overview</strong><small>Project brief</small></span><span /></a>
               {navigationItems.map((item) => {
@@ -86,10 +86,10 @@ export default function SiteChrome({ activePage, syncState, editorAccess }: { ac
         <>
           <button className="chrome-scrim" type="button" aria-label="Close guide" onClick={() => setGuideOpen(false)} />
           <aside className="chrome-guide" aria-label="Project guide">
-            <div className="chrome-guide__header"><span className="eyebrow">ICARUS / guide</span><button type="button" className="icon-button" aria-label="Close guide" onClick={() => setGuideOpen(false)}>×</button></div>
+            <div className="chrome-guide__header"><span className="eyebrow">AEOLUS / guide</span><button type="button" className="icon-button" aria-label="Close guide" onClick={() => setGuideOpen(false)}>×</button></div>
             <div className="chrome-guide__body">
-              <h3>What is ICARUS?</h3>
-              <p>ICARUS is a simulation interface for a distributed habitat ventilation system, built for the Arm Create Physical AI challenge.</p>
+              <h3>What is AEOLUS?</h3>
+              <p>AEOLUS is a simulation interface for a distributed habitat ventilation system, built for the Arm Create Physical AI challenge.</p>
               <h3>How does it work?</h3>
               <p>The <strong>Connections</strong> view lets you define rooms, processing areas, and the actuators between them.</p>
               <h3>What comes next?</h3>
@@ -98,7 +98,7 @@ export default function SiteChrome({ activePage, syncState, editorAccess }: { ac
               <p>Alex Kurkar, Ben, and MS-Mesh.</p>
               <h3>Learn more</h3>
               <ul>
-                <li><a href="https://github.com/akurkar07/arm-hackathon" target="_blank" rel="noreferrer">Team repository</a></li>
+                <li><a href="https://github.com/arm-hackathon/arm-hackathon" target="_blank" rel="noreferrer">Team repository</a></li>
                 <li><a href="https://arm-ai-optimization-challenge.devpost.com/" target="_blank" rel="noreferrer">Arm Create challenge</a></li>
                 <li><a href="https://learn.arm.com/" target="_blank" rel="noreferrer">Arm learning paths</a></li>
               </ul>

@@ -1,6 +1,6 @@
-# ICARUS / initial project plan
+# AEOLUS / initial project plan
 
-ICARUS is a simulation-first Physical AI prototype for the Arm Create AI Optimization Challenge, Physical AI track.
+AEOLUS is a simulation-first Physical AI prototype for the Arm Create AI Optimization Challenge, Physical AI track.
 
 The goal is a visible proof loop:
 

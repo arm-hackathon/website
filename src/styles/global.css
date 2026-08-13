@@ -13,9 +13,9 @@
   --surface-solid: #fbfaf6;
   --canvas: #eae8e1;
   --grid: rgba(55, 62, 62, 0.08);
-  --accent: #cf6e3e;
-  --accent-deep: #a84e29;
-  --accent-soft: rgba(207, 110, 62, 0.14);
+  --accent: #0077c8;
+  --accent-deep: #005b9a;
+  --accent-soft: rgba(0, 119, 200, 0.14);
   --signal: #2e9b76;
   --shadow: 0 24px 70px rgba(59, 57, 48, 0.13);
 }
@@ -32,9 +32,9 @@
   --surface-solid: #1e2325;
   --canvas: #202527;
   --grid: rgba(210, 218, 213, 0.07);
-  --accent: #e28a56;
-  --accent-deep: #f0a171;
-  --accent-soft: rgba(226, 138, 86, 0.16);
+  --accent: #36a9e1;
+  --accent-deep: #73c7ef;
+  --accent-soft: rgba(54, 169, 225, 0.16);
   --signal: #64c59b;
   --shadow: 0 24px 70px rgba(0, 0, 0, 0.26);
 }
@@ -79,7 +79,7 @@ button {
 
 ::selection {
   background: var(--accent);
-  color: #fffaf4;
+  color: #f7fbff;
 }
 
 [data-reveal] {

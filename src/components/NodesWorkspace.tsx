@@ -354,7 +354,7 @@ export default function NodesWorkspace() {
         <div className="brand-lockup">
           <div className="brand-mark" aria-hidden="true"><span /><span /><span /></div>
           <div>
-            <p className="brand-name">ICARUS</p>
+          <p className="brand-name">AEOLUS</p>
             <p className="brand-subtitle">Distributed habitat systems</p>
           </div>
         </div>
@@ -388,9 +388,9 @@ export default function NodesWorkspace() {
         <div className="landing-copy">
           <p className="eyebrow">Arm Create 2026 / Physical AI</p>
           <h1>See the system<br /><em>working.</em></h1>
-          <p className="landing-intro">ICARUS is the simulation interface for a distributed habitat ventilation system. Use it to see rooms, actuators, paths, telemetry, fault scenarios, and safe virtual actions come together.</p>
+          <p className="landing-intro">AEOLUS is the simulation interface for a distributed habitat ventilation system. Use it to see rooms, actuators, paths, telemetry, fault scenarios, and safe virtual actions come together.</p>
           <div className="landing-facts">
-            <div className="landing-fact"><span>Project</span><strong>ICARUS</strong><small>Habitat systems interface</small></div>
+            <div className="landing-fact"><span>Project</span><strong>AEOLUS</strong><small>Habitat systems interface</small></div>
             <div className="landing-fact"><span>Track</span><strong>Physical AI</strong><small>Arm Create challenge</small></div>
             <div className="landing-fact"><span>Contributors</span><strong>Alex / Ben / MS-Mesh</strong><small>Submission in progress</small></div>
           </div>
@@ -501,11 +501,11 @@ export default function NodesWorkspace() {
                       minZoom={0.35}
                       maxZoom={1.6}
                       proOptions={{ hideAttribution: true }}
-                      defaultEdgeOptions={{ type: 'smoothstep', markerEnd: { type: MarkerType.ArrowClosed, color: '#d87b43' } }}
+                      defaultEdgeOptions={{ type: 'smoothstep', markerEnd: { type: MarkerType.ArrowClosed, color: '#0077c8' } }}
                     >
                       <Background color="var(--grid)" gap={28} size={1} />
                       <Controls showInteractive={false} />
-                      <MiniMap className="mini-map" nodeColor={(node) => node.data?.tone === 'amber' ? '#d87b43' : node.data?.tone === 'blue' ? '#6f9bc2' : node.data?.tone === 'green' ? '#61ad8f' : '#8b9290'} maskColor="rgba(20, 24, 25, 0.72)" />
+                      <MiniMap className="mini-map" nodeColor={(node) => node.data?.tone === 'amber' ? '#0077c8' : node.data?.tone === 'blue' ? '#6f9bc2' : node.data?.tone === 'green' ? '#61ad8f' : '#8b9290'} maskColor="rgba(20, 24, 25, 0.72)" />
                     </ReactFlow>
                     <div className="canvas-key"><span><i className="key-line" /> actuator direction</span><span><i className="key-dot" /> editable room</span></div>
                   </div>
@@ -530,7 +530,7 @@ export default function NodesWorkspace() {
         </div>
       </section>
 
-      <footer className="app-footer"><span>ICARUS / simulation interface</span><span><Save size={13} /> {notice}</span><span className="mono">schema v1.0</span></footer>
+      <footer className="app-footer"><span>AEOLUS / simulation interface</span><span><Save size={13} /> {notice}</span><span className="mono">schema v1.0</span></footer>
     </main>
   );
 }
@@ -615,7 +615,7 @@ function LockedView({ activeTab, onReturn }: { activeTab: TabId; onReturn: () =>
       <div className="coming-soon-view__icon"><LockKeyhole size={24} /></div>
       <span className="panel-kicker">Locked layer</span>
       <h2>{tab.label} is to be developed.</h2>
-      <p>This interface layer will show the running simulation after the Connections view is linked to the ICARUS runtime.</p>
+      <p>This interface layer will show the running simulation after the Connections view is linked to the AEOLUS runtime.</p>
       <button type="button" className="primary-button" onClick={onReturn}><ArrowRight size={15} /> Return to Connections</button>
     </div>
   );

@@ -862,7 +862,7 @@
   transform: translateY(-1px);
 }
 
-.icarus-node--amber { --node-accent: #d58753; }
+.icarus-node--amber { --node-accent: #0077c8; }
 .icarus-node--blue { --node-accent: #6f9bc2; }
 .icarus-node--green { --node-accent: #61ad8f; }
 .icarus-node--neutral { --node-accent: #8b9290; }

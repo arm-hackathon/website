@@ -193,7 +193,7 @@ export function createConnection(source: string, target: string): IcarusEdge {
     },
     markerEnd: {
       type: MarkerType.ArrowClosed,
-      color: '#d87b43',
+      color: '#0077c8',
     },
   };
 }
@@ -257,7 +257,7 @@ export function fromGraphDocument(document: GraphDocument): { nodes: IcarusNode[
       data: connection.data,
       markerEnd: {
         type: MarkerType.ArrowClosed,
-        color: '#d87b43',
+        color: '#0077c8',
       },
     })),
   };
@@ -266,7 +266,7 @@ export function fromGraphDocument(document: GraphDocument): { nodes: IcarusNode[
 export function parseGraphDocument(payload: unknown): GraphDocument {
   const result = graphDocumentSchema.safeParse(payload);
   if (!result.success) {
-    throw new Error('This file is not a valid ICARUS topology document.');
+    throw new Error('This file is not a valid AEOLUS topology document.');
   }
 
   return result.data;
