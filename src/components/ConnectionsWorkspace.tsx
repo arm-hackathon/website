@@ -13,7 +13,7 @@ import {
   type NodeChange,
   type NodeProps,
 } from '@xyflow/react';
-import { ArrowLeftRight, ArrowRight, ChevronDown, CloudUpload, Download, FlaskConical, GitBranch, History, PanelRight, PanelRightClose, Plus, RotateCcw, Search, Settings2, SlidersHorizontal, Tag, Trash2, TriangleAlert, Upload, Users, Wind, X } from 'lucide-react';
+import { ArrowLeftRight, ArrowRight, ChevronDown, CloudUpload, Download, FlaskConical, GitBranch, History, PanelRight, PanelRightClose, Pause, Play, Plus, RotateCcw, Search, Settings2, SlidersHorizontal, Tag, Trash2, TriangleAlert, Upload, Users, Wind, X } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react';
 import '@xyflow/react/dist/style.css';
 import './NodesWorkspace.css';
@@ -70,6 +70,15 @@ function parseBiasValue(value: string): string | number | boolean {
   if (value === 'false') return false;
   if (value.trim() !== '' && Number.isFinite(Number(value))) return Number(value);
   return value;
+}
+
+function numericBias(bias: Bias | undefined, key: string, fallback: number): number {
+  const value = bias?.[key];
+  return typeof value === 'number' && Number.isFinite(value) ? value : fallback;
+}
+
+function effectiveCapacity(edge: IcarusEdge): number {
+  return Math.max(0, numericBias(edge.data?.bias, 'capacity', 0) * numericBias(edge.data?.bias, 'effectiveness', 1));
 }
 
 function readLocalDrafts(): Record<string, GraphDocument> {
@@ -129,6 +138,7 @@ export default function ConnectionsWorkspace() {
   const [draftMenuOpen, setDraftMenuOpen] = useState(false);
   const [confirmDeleteDraft, setConfirmDeleteDraft] = useState<string | null>(null);
   const [inspectorOpen, setInspectorOpen] = useState(true);
+  const [flowMotion, setFlowMotion] = useState(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const initialisingRef = useRef(true);
 
@@ -136,9 +146,39 @@ export default function ConnectionsWorkspace() {
   const selectedEdge = edges.find((edge) => edge.id === selectedEdgeId) ?? null;
   const selectedSource = selectedEdge ? nodes.find((node) => node.id === selectedEdge.source) : null;
   const selectedTarget = selectedEdge ? nodes.find((node) => node.id === selectedEdge.target) : null;
-  const visibleNodes = nodes.map((node) => ({ ...node, hidden: Boolean(searchQuery && !node.data.label.toLowerCase().includes(searchQuery.toLowerCase())) }));
+  const normalisedSearch = searchQuery.trim().toLowerCase();
+  const matchingEdgeNodeIds = new Set(edges.flatMap((edge) => {
+    const source = nodes.find((node) => node.id === edge.source)?.data.label ?? '';
+    const target = nodes.find((node) => node.id === edge.target)?.data.label ?? '';
+    const haystack = `${edge.data?.label ?? ''} ${source} ${target} ${edge.data?.tags.join(' ') ?? ''}`.toLowerCase();
+    return normalisedSearch && haystack.includes(normalisedSearch) ? [edge.source, edge.target] : [];
+  }));
+  const visibleNodes = nodes.map((node) => ({ ...node, hidden: Boolean(normalisedSearch && !node.data.label.toLowerCase().includes(normalisedSearch) && !matchingEdgeNodeIds.has(node.id)) }));
   const hiddenNodeIds = new Set(visibleNodes.filter((node) => node.hidden).map((node) => node.id));
-  const visibleEdges = edges.map((edge) => ({ ...edge, hidden: hiddenNodeIds.has(edge.source) || hiddenNodeIds.has(edge.target) }));
+  const visibleEdges = edges.map((edge) => {
+    const capacity = effectiveCapacity(edge);
+    const commandable = edge.data?.bias.commandable !== false;
+    const constrained = !commandable || capacity <= 0;
+    return {
+      ...edge,
+      hidden: hiddenNodeIds.has(edge.source) || hiddenNodeIds.has(edge.target),
+      animated: flowMotion && !constrained,
+      label: `${capacity.toFixed(capacity % 1 ? 1 : 0)} flow`,
+      className: constrained ? 'airflow-edge airflow-edge--constrained' : 'airflow-edge',
+      style: { strokeWidth: Math.min(4, 1.4 + capacity / 8) },
+      markerEnd: { type: MarkerType.ArrowClosed, color: constrained ? '#c65f52' : '#0077c8' },
+      labelStyle: { fill: 'var(--ink-muted)', fontFamily: 'IBM Plex Mono', fontSize: 9 },
+      labelBgStyle: { fill: 'var(--panel-strong)', fillOpacity: 0.9 },
+      labelBgPadding: [5, 3] as [number, number],
+      labelBgBorderRadius: 4,
+    };
+  });
+  const pairedRoutes = new Set(edges
+    .filter((edge) => directionExists(edges, edge.target, edge.source))
+    .map((edge) => [edge.source, edge.target].sort().join('\u0000'))).size;
+  const oneWayDirections = edges.filter((edge) => !directionExists(edges, edge.target, edge.source)).length;
+  const constrainedDirections = edges.filter((edge) => edge.data?.bias.commandable === false || effectiveCapacity(edge) <= 0).length;
+  const totalEffectiveCapacity = edges.reduce((total, edge) => total + effectiveCapacity(edge), 0);
   const canEdit = editorAccess.canEdit;
 
   useEffect(() => {
@@ -547,6 +587,7 @@ export default function ConnectionsWorkspace() {
               <button className="primary-button" type="button" title={canEdit ? 'Synchronise the server with the current draft' : 'Sign in with an approved GitHub or Google account to synchronise'} disabled={!canEdit || syncState === 'syncing'} onClick={requestSynchronise}><CloudUpload size={16} /> Synchronise</button>
             </div>
             <div className="toolbar-group">
+              <button className={`icon-button${flowMotion ? ' is-active' : ''}`} type="button" aria-label={flowMotion ? 'Pause airflow motion' : 'Play airflow motion'} title={flowMotion ? 'Pause airflow motion' : 'Play airflow motion'} aria-pressed={flowMotion} onClick={() => setFlowMotion((active) => !active)}>{flowMotion ? <Pause size={17} /> : <Play size={17} />}</button>
               <button className="icon-button" type="button" aria-label={inspectorOpen ? 'Hide inspector panel' : 'Show inspector panel'} title={inspectorOpen ? 'Hide inspector panel' : 'Show inspector panel'} aria-pressed={inspectorOpen} onClick={toggleInspector}>{inspectorOpen ? <PanelRightClose size={17} /> : <PanelRight size={17} />}</button>
               <button className="icon-button" type="button" aria-label="Export topology" title="Export topology JSON" onClick={exportGraph}><Download size={17} /></button>
               <button className="icon-button" type="button" aria-label="Import topology" title={canEdit ? 'Import topology JSON' : 'Sign in with an approved GitHub or Google account to import topology'} disabled={!canEdit} onClick={() => fileInputRef.current?.click()}><Upload size={17} /></button>
@@ -575,7 +616,7 @@ export default function ConnectionsWorkspace() {
 
         {connectionMode && <div className="connection-composer"><div className="connection-composer__heading"><span className="composer-icon"><ArrowLeftRight size={18} /></span><div><strong>{connectionMode === 2 ? 'Add a return actuator pair' : 'Add an actuator path'}</strong><small>Connect two rooms in one or both directions.</small></div></div><label><span>From</span><select value={connectionSource} onChange={(event) => setConnectionSource(event.target.value)}>{nodes.map((node) => <option key={node.id} value={node.id}>{node.data.label}</option>)}</select></label><ArrowRight size={17} className="composer-arrow" /><label><span>To</span><select value={connectionTarget} onChange={(event) => setConnectionTarget(event.target.value)}>{nodes.map((node) => <option key={node.id} value={node.id}>{node.data.label}</option>)}</select></label>{connectionError && <span className="composer-error">{connectionError}</span>}<button className="primary-button" type="button" onClick={addConnectionsFromComposer}><Plus size={17} /> Add actuator{connectionMode === 2 ? 's' : ''}</button><button className="icon-button" type="button" aria-label="Close connection composer" title="Close" onClick={() => setConnectionMode(null)}><X size={18} /></button></div>}
 
-          <div className={`workspace-body${inspectorOpen ? '' : ' inspector-hidden'}`}><div className="canvas-column"><div className="flow-canvas"><ReactFlow<IcarusNode, IcarusEdge> nodes={visibleNodes} edges={visibleEdges} nodeTypes={nodeTypes} onNodesChange={handleNodesChange} onEdgesChange={handleEdgesChange} onConnect={onConnect} onNodeClick={(_, node) => selectNode(node.id)} onEdgeClick={(_, edge) => selectEdge(edge.id)} onPaneClick={() => { setSelectedNodeId(null); setSelectedEdgeId(null); }} fitView fitViewOptions={{ padding: 0.26, minZoom: 0.52, maxZoom: 1.2 }} minZoom={0.35} maxZoom={1.6} proOptions={{ hideAttribution: true }} defaultEdgeOptions={{ type: 'smoothstep', markerEnd: { type: MarkerType.ArrowClosed, color: '#0077c8' } }}><Background color="var(--grid)" gap={28} size={1} /><Controls showInteractive={false} /><MiniMap className="mini-map" pannable zoomable nodeColor={(node) => node.data?.tone === 'amber' ? '#0077c8' : node.data?.tone === 'blue' ? '#6f9bc2' : node.data?.tone === 'green' ? '#61ad8f' : '#8b9290'} maskColor="rgba(120, 126, 122, 0.28)" maskStrokeColor="transparent" /></ReactFlow><div className="canvas-key"><span><i className="key-line" /> actuator direction</span><span><i className="key-dot" /> editable room</span></div></div></div>{inspectorOpen && <Inspector selectedNode={selectedNode} selectedEdge={selectedEdge} sourceNode={selectedSource ?? null} targetNode={selectedTarget ?? null} onUpdateNode={updateNodeData} onUpdateEdge={updateEdgeData} onUpdateBias={updateBias} onAddBiasField={addBiasField} onDelete={removeSelected} onAddNode={addNode} canEdit={canEdit} />}</div>
+          <div className={`workspace-body${inspectorOpen ? '' : ' inspector-hidden'}`}><div className="canvas-column"><div className="flow-canvas"><ReactFlow<IcarusNode, IcarusEdge> nodes={visibleNodes} edges={visibleEdges} nodeTypes={nodeTypes} onNodesChange={handleNodesChange} onEdgesChange={handleEdgesChange} onConnect={onConnect} onNodeClick={(_, node) => selectNode(node.id)} onEdgeClick={(_, edge) => selectEdge(edge.id)} onPaneClick={() => { setSelectedNodeId(null); setSelectedEdgeId(null); }} fitView fitViewOptions={{ padding: 0.26, minZoom: 0.52, maxZoom: 1.2 }} minZoom={0.35} maxZoom={1.6} proOptions={{ hideAttribution: true }} defaultEdgeOptions={{ type: 'smoothstep', markerEnd: { type: MarkerType.ArrowClosed, color: '#0077c8' } }}><Background color="var(--grid)" gap={28} size={1} /><Controls showInteractive={false} /><MiniMap className="mini-map" pannable zoomable nodeColor={(node) => node.data?.tone === 'amber' ? '#0077c8' : node.data?.tone === 'blue' ? '#6f9bc2' : node.data?.tone === 'green' ? '#61ad8f' : '#8b9290'} maskColor="rgba(120, 126, 122, 0.28)" maskStrokeColor="transparent" /></ReactFlow><div className="airflow-summary" aria-label="Airflow network summary"><span><strong>{totalEffectiveCapacity.toFixed(totalEffectiveCapacity % 1 ? 1 : 0)}</strong> effective flow</span><span><strong>{pairedRoutes}</strong> paired routes</span><span><strong>{oneWayDirections}</strong> one-way</span>{constrainedDirections > 0 && <span className="is-warning"><strong>{constrainedDirections}</strong> constrained</span>}</div><div className="canvas-key"><span><i className="key-line key-line--flow" /> airflow / capacity</span><span><i className="key-line key-line--constrained" /> constrained</span><span><i className="key-dot" /> room</span></div></div></div>{inspectorOpen && <Inspector selectedNode={selectedNode} selectedEdge={selectedEdge} sourceNode={selectedSource ?? null} targetNode={selectedTarget ?? null} onUpdateNode={updateNodeData} onUpdateEdge={updateEdgeData} onUpdateBias={updateBias} onAddBiasField={addBiasField} onDelete={removeSelected} onAddNode={addNode} canEdit={canEdit} />}</div>
       </div>
       <footer className="app-footer"><span><span className="status-dot status-dot--accent" /> {nodes.length} rooms / {edges.length} actuators</span><span className="mono">{draftError || 'Drag rooms to arrange · connect handles to add an actuator'}</span><span className="mono">schema v1.0</span></footer>
     </main>
