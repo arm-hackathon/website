@@ -27,7 +27,7 @@ export default function ProjectLanding() {
           <div className="signal-orbit orbit-4" />
           <div className="signal-orbit orbit-5" />
           <div className="signal-core"><strong>AEOLUS</strong><small>interface map</small></div>
-          <a className="signal-node signal-node--connections is-active" href="/connections"><GitBranch size={15} /><span>Connections</span></a>
+          <a className="signal-node signal-node--connections" href="/connections"><GitBranch size={15} /><span>Connections</span></a>
           <a className="signal-node signal-node--live" href="/live"><Activity size={15} /><span>Live system</span></a>
           <a className="signal-node signal-node--scenarios" href="/scenarios"><GitBranch size={15} /><span>Scenarios</span></a>
           <a className="signal-node signal-node--telemetry" href="/telemetry"><Database size={15} /><span>Telemetry</span></a>

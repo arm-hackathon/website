@@ -35,9 +35,9 @@
   border-radius: 50%;
 }
 
-.orbit-1 { inset: 33%; --orbit-color: color-mix(in srgb, #0077c8 55%, transparent); animation: signal-rotate 26s linear infinite; }
+.orbit-1 { inset: 33%; --orbit-color: color-mix(in srgb, #1677c8 55%, transparent); animation: signal-rotate 26s linear infinite; }
 .orbit-2 { inset: 25.5%; --orbit-color: color-mix(in srgb, #2e9b76 55%, transparent); animation: signal-rotate 34s linear infinite reverse; }
-.orbit-3 { inset: 18%; --orbit-color: color-mix(in srgb, #4f83c2 55%, transparent); animation: signal-rotate 42s linear infinite; }
+.orbit-3 { inset: 18%; --orbit-color: color-mix(in srgb, #526fc2 55%, transparent); animation: signal-rotate 42s linear infinite; }
 .orbit-4 { inset: 10.5%; --orbit-color: color-mix(in srgb, #00a9ce 55%, transparent); animation: signal-rotate 50s linear infinite reverse; }
 .orbit-5 { inset: 3%; --orbit-color: color-mix(in srgb, #8a63c4 55%, transparent); animation: signal-rotate 60s linear infinite; }
 
@@ -54,9 +54,9 @@
   box-shadow: 0 0 0 5px color-mix(in srgb, var(--dot-color) 22%, transparent), 0 0 16px 3px color-mix(in srgb, var(--dot-color) 70%, transparent);
 }
 
-.orbit-1::after { --dot-color: #0077c8; }
+.orbit-1::after { --dot-color: #1677c8; }
 .orbit-2::after { --dot-color: #2e9b76; }
-.orbit-3::after { --dot-color: #4f83c2; }
+.orbit-3::after { --dot-color: #526fc2; }
 .orbit-4::after { --dot-color: #00a9ce; }
 .orbit-5::after { --dot-color: #8a63c4; }
 
@@ -118,7 +118,7 @@
   border-left: 3px solid var(--node-color, var(--accent));
   border-radius: 10px;
   background: var(--surface-solid);
-  color: var(--ink);
+  color: var(--node-color, var(--ink));
   font: 12px 'IBM Plex Mono', monospace;
   box-shadow: 0 10px 25px rgba(24, 28, 28, 0.14);
   white-space: nowrap;
@@ -137,26 +137,13 @@
   color: var(--node-color, var(--ink-muted));
 }
 
-/* Each node sits exactly ON its own orbit ring. The container is square
-   (aspect-ratio: 1) with its centre at (50%, 50%). Each orbit inset defines a
-   circumradius R from that centre: orbit-1 → 17%, 2 → 24.5%, 3 → 32%, 4 → 39.5%,
-   5 → 47%. Position math: left = 50 + R*cos(θ), top = 50 − R*sin(θ). The five
-   nodes are arranged as a pentagon (72° apart) with Connections on top. */
-.signal-node--connections { top: 36.5%; left: 5%; transform: translate(0, -50%); --node-color: #8a63c4; }
+/* Connections is edge-anchored to the circular boundary so its wide label
+   remains fully visible without drifting toward the centre of the map. */
+.signal-node--connections { top: 30%; left: 0; transform: translate(0, -50%); --node-color: #8a63c4; }
 .signal-node--live        { top: 22%; left: 76%; transform: translate(-50%, -50%); --node-color: #00a9ce; }
-.signal-node--scenarios   { top: 76%; left: 69%; transform: translate(-50%, -50%); --node-color: #4f83c2; }
+.signal-node--scenarios   { top: 76%; left: 69%; transform: translate(-50%, -50%); --node-color: #526fc2; }
 .signal-node--telemetry   { top: 70%; left: 36%; transform: translate(-50%, -50%); --node-color: #2e9b76; }
-.signal-node--benchmarks  { top: 33%; left: 50%; transform: translate(-50%, -50%); --node-color: #0077c8; }
-
-.signal-node.is-active {
-  border-color: color-mix(in srgb, var(--accent) 60%, var(--line));
-  background: color-mix(in srgb, var(--accent) 14%, var(--surface-solid));
-  color: var(--accent-deep);
-}
-
-.signal-node.is-active svg {
-  color: var(--accent-deep);
-}
+.signal-node--benchmarks  { top: 33%; left: 50%; transform: translate(-50%, -50%); --node-color: #1677c8; }
 
 .eyebrow,
 .rail-label,
