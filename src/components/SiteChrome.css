@@ -458,6 +458,7 @@
   }
 
   .site-topbar .sync-status,
+  .site-topbar__sync,
   .site-topbar .help-button span:not(.help-mark) {
     display: none;
   }
@@ -466,5 +467,7 @@
     display: none;
   }
 
-  .site-topbar > .chrome-menu-button { margin-right: -3px; }
+  .site-topbar__identity > .chrome-menu-button { margin-right: -3px; }
+
+  .site-topbar .brand-lockup small { display: none; }
 }

@@ -1,7 +1,7 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import LockedPage from '../components/LockedPage';
+import LayerWorkspace from '../components/LayerWorkspace';
 ---
-<BaseLayout title="AEOLUS / Telemetry" description="The AEOLUS telemetry view is planned for a future release.">
-  <LockedPage client:load title="Telemetry" detail="This view will make the simulated sensor stream readable: airflow, CO2 proxy, actuator output, tracking residual, and model inputs." />
+<BaseLayout title="AEOLUS / Telemetry" description="Inspect the AEOLUS observable telemetry boundary and topology-bound model_input_v1 feature contract.">
+  <LayerWorkspace client:load pageId="telemetry" />
 </BaseLayout>

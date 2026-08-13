@@ -142,7 +142,7 @@
    circumradius R from that centre: orbit-1 → 17%, 2 → 24.5%, 3 → 32%, 4 → 39.5%,
    5 → 47%. Position math: left = 50 + R*cos(θ), top = 50 − R*sin(θ). The five
    nodes are arranged as a pentagon (72° apart) with Connections on top. */
-.signal-node--connections { top: 36.5%; left: 5%; transform: translate(-50%, -50%); --node-color: #8a63c4; }
+.signal-node--connections { top: 36.5%; left: 5%; transform: translate(0, -50%); --node-color: #8a63c4; }
 .signal-node--live        { top: 22%; left: 76%; transform: translate(-50%, -50%); --node-color: #00a9ce; }
 .signal-node--scenarios   { top: 76%; left: 69%; transform: translate(-50%, -50%); --node-color: #4f83c2; }
 .signal-node--telemetry   { top: 70%; left: 36%; transform: translate(-50%, -50%); --node-color: #2e9b76; }
@@ -477,8 +477,6 @@
   .signal-core strong { font-size: 15px; }
   .signal-core small { font-size: 8px; }
   .signal-core span { font-size: 10px; }
-
-  .signal-node--right { right: -15px; }
 
   .flow-strip {
     grid-template-columns: 1fr;

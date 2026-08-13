@@ -1,7 +1,7 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import LockedPage from '../components/LockedPage';
+import LayerWorkspace from '../components/LayerWorkspace';
 ---
-<BaseLayout title="AEOLUS / Scenarios" description="The AEOLUS scenario view is planned for a future release.">
-  <LockedPage client:load title="Scenarios" detail="This view will define nominal runs, fan degradation, invalid telemetry, and replayable fault timelines." />
+<BaseLayout title="AEOLUS / Scenarios" description="Explore deterministic AEOLUS healthy and fault scenario families with paired counterfactuals and replayable identities.">
+  <LayerWorkspace client:load pageId="scenarios" />
 </BaseLayout>

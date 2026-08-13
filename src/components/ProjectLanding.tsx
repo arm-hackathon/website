@@ -1,4 +1,4 @@
-import { ArrowUpRight, BookOpen, ExternalLink, GitBranch, LockKeyhole, UsersRound } from 'lucide-react';
+import { Activity, ArrowUpRight, BookOpen, Database, ExternalLink, GitBranch, SlidersHorizontal, UsersRound } from 'lucide-react';
 import SiteChrome from './SiteChrome';
 import './ProjectLanding.css';
 
@@ -28,16 +28,16 @@ export default function ProjectLanding() {
           <div className="signal-orbit orbit-5" />
           <div className="signal-core"><strong>AEOLUS</strong><small>interface map</small></div>
           <a className="signal-node signal-node--connections is-active" href="/connections"><GitBranch size={15} /><span>Connections</span></a>
-          <a className="signal-node signal-node--live" href="/live"><LockKeyhole size={15} /><span>Live system</span></a>
-          <a className="signal-node signal-node--scenarios" href="/scenarios"><LockKeyhole size={15} /><span>Scenarios</span></a>
-          <a className="signal-node signal-node--telemetry" href="/telemetry"><LockKeyhole size={15} /><span>Telemetry</span></a>
-          <a className="signal-node signal-node--benchmarks" href="/benchmarks"><LockKeyhole size={15} /><span>Benchmarks</span></a>
+          <a className="signal-node signal-node--live" href="/live"><Activity size={15} /><span>Live system</span></a>
+          <a className="signal-node signal-node--scenarios" href="/scenarios"><GitBranch size={15} /><span>Scenarios</span></a>
+          <a className="signal-node signal-node--telemetry" href="/telemetry"><Database size={15} /><span>Telemetry</span></a>
+          <a className="signal-node signal-node--benchmarks" href="/benchmarks"><SlidersHorizontal size={15} /><span>Benchmarks</span></a>
         </div>
       </section>
 
       <section className="project-overview" id="project" data-reveal="2">
         <div className="section-heading"><p className="eyebrow">What we are building</p><h2>Not a dashboard about a simulation. The interface for the simulation itself.</h2></div>
-        <div className="overview-copy"><p>AEOLUS models a distributed habitat ventilation system. Rooms and processing areas are connected by directed actuators. The current Connections view lets the team define that topology before it is consumed by the Python plant model.</p><p>The planned interface will make the loop observable: a fan degrades, telemetry changes, local inference scores the fault, the safety governor limits a virtual response, and the resulting plant state is replayable.</p><div className="scope-line"><span>Current live layer</span><strong>Connections</strong><span className="scope-divider" /><span>Future layers</span><strong>Live system / Scenarios / Telemetry / Benchmarks</strong></div></div>
+        <div className="overview-copy"><p>AEOLUS models a distributed habitat ventilation system. Rooms and processing areas are connected by directed actuators. The Connections view lets the team define that topology before it is consumed by the Python plant model.</p><p>The evidence layers make the loop inspectable: a fan degrades, telemetry changes, local inference scores the fault, the safety governor limits a virtual response, and the resulting plant state is replayable.</p><div className="scope-line"><span>Editable layer</span><strong>Connections</strong><span className="scope-divider" /><span>Evidence layers</span><strong>Live system / Scenarios / Telemetry / Benchmarks</strong></div></div>
       </section>
 
       <section className="flow-strip" data-reveal="3">

@@ -92,8 +92,8 @@ export default function SiteChrome({ activePage, syncState, editorAccess }: { ac
               <p>AEOLUS is a simulation interface for a distributed habitat ventilation system, built for the Arm Create Physical AI challenge.</p>
               <h3>How does it work?</h3>
               <p>The <strong>Connections</strong> view lets you define rooms, processing areas, and the actuators between them.</p>
-              <h3>What comes next?</h3>
-              <p>Future layers will show the live simulation, fault scenarios, telemetry streams, and Arm performance benchmarks.</p>
+              <h3>What can I inspect?</h3>
+              <p>The evidence layers expose the control lifecycle, fault families, observable telemetry contract, and current benchmark result without turning research evidence into deployment claims.</p>
               <h3>Who is building it?</h3>
               <p>Alex Kurkar, Ben, and MS-Mesh.</p>
               <h3>Learn more</h3>
