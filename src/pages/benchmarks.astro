@@ -2,6 +2,6 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import LayerWorkspace from '../components/LayerWorkspace';
 ---
-<BaseLayout title="AEOLUS / Benchmarks" description="Review frozen AEOLUS detector evidence, ONNX parity, and the Arm64 and INT8 measurements that remain outstanding.">
+<BaseLayout title="AEOLUS / Arm64 Optimization Evidence" description="Review the measured AEOLUS FP64-to-FP32 optimization: 50% less model-array memory and 1.73x faster inference on native Arm Neoverse-N2 with prediction parity preserved.">
   <LayerWorkspace client:load pageId="benchmarks" />
 </BaseLayout>
