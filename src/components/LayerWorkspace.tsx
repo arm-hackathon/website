@@ -84,16 +84,16 @@ const definitions: Record<LayerId, LayerDefinition> = {
   },
   benchmarks: {
     id: 'benchmarks',
-    eyebrow: 'Measured evidence / explicit non-claims',
-    title: 'Rules lead today. Arm optimization remains the next proof.',
-    lead: 'Frozen experiment evidence compares the temporal MLP with calibrated deterministic rules. The repository records FP32 ONNX parity, but does not yet contain measured native Arm64 or INT8 performance.',
+    eyebrow: 'Native Arm64 / controlled before-and-after evidence',
+    title: 'Half the model memory. 1.73× faster. Prediction parity preserved.',
+    lead: 'The submitted optimization converts the same forecast workload from FP64 to FP32 and measures both artifacts on a native Arm Neoverse-N2 runner. The evidence receipt binds hardware, model hashes, workload, latency, size, and quality.',
     icon: BarChart3,
-    status: 'Evidence, not certification',
+    status: 'Native Arm64 evidence',
     metrics: [
-      { value: '0.641', label: 'Rule macro-F1', detail: 'Historical final experiment', tone: 'signal' },
-      { value: '0.577', label: 'MLP macro-F1', detail: 'Historical final experiment' },
-      { value: '9 ticks', label: 'MLP median latency', detail: 'Observable-onset reference', tone: 'accent' },
-      { value: '14 KB', label: 'FP32 ONNX artifact', detail: 'No INT8 artifact committed' },
+      { value: '1.73×', label: 'Median speed-up', detail: '738.349 → 426.358 µs', tone: 'signal' },
+      { value: '50%', label: 'Array memory reduction', detail: '28.76 MB → 14.38 MB' },
+      { value: '47.1%', label: 'Artifact size reduction', detail: '2.13 MB → 1.12 MB', tone: 'accent' },
+      { value: '4.88e-6', label: 'Maximum normalized drift', detail: 'Passed 1e-4 parity gate' },
     ],
   },
 };
@@ -256,22 +256,22 @@ function BenchmarksContent() {
   return (
     <div className="layer-layout layer-layout--benchmarks">
       <section className="layer-panel comparison-panel">
-        <header className="layer-panel__header"><div><span>Historical frozen experiment</span><h2>Detector comparison</h2></div><BarChart3 size={21} /></header>
-        <div className="benchmark-table" role="table" aria-label="Detector comparison">
-          <div className="benchmark-row benchmark-row--head" role="row"><span>Method</span><span>Macro-F1</span><span>False alarms</span><span>Median latency</span></div>
-          <div className="benchmark-row is-preferred" role="row"><strong>Calibrated rules</strong><span>0.641</span><span>2.53%</span><span>11 ticks</span></div>
-          <div className="benchmark-row" role="row"><strong>Temporal MLP</strong><span>0.577</span><span>35.36%</span><span>9 ticks</span></div>
+        <header className="layer-panel__header"><div><span>Submitted optimization output</span><h2>Same workload, reduced precision</h2></div><BarChart3 size={21} /></header>
+        <div className="benchmark-table" role="table" aria-label="FP64 and FP32 native Arm64 comparison">
+          <div className="benchmark-row benchmark-row--head" role="row"><span>Artifact</span><span>File size</span><span>Median</span><span>p95</span></div>
+          <div className="benchmark-row" role="row"><strong>FP64 baseline</strong><span>2,126,337 B</span><span>738.349 µs</span><span>797.245 µs</span></div>
+          <div className="benchmark-row is-preferred" role="row"><strong>FP32 optimized</strong><span>1,124,273 B</span><span>426.358 µs</span><span>445.057 µs</span></div>
         </div>
-        <div className="evidence-verdict"><CheckCircle2 size={19} /><div><strong>Preferred method: rule baseline</strong><small>The frozen criterion records <code>ai_advantage_demonstrated=false</code>. The MLP remains useful research, especially for frozen-sensor recall.</small></div></div>
+        <div className="evidence-verdict"><CheckCircle2 size={19} /><div><strong>Prediction parity passed</strong><small>Maximum normalized drift <code>4.879×10⁻⁶</code> against a predeclared <code>1×10⁻⁴</code> acceptance threshold.</small></div></div>
       </section>
       <aside className="layer-panel arm-gap-panel">
-        <header className="layer-panel__header"><div><span>Arm challenge gap</span><h2>Still to measure</h2></div><Cpu size={21} /></header>
+        <header className="layer-panel__header"><div><span>Target and proof boundary</span><h2>What this result means</h2></div><Cpu size={21} /></header>
         <div className="gap-list">
-          <div><Gauge size={18} /><span><strong>Native Arm64 latency</strong><small>No declared target measurement yet</small></span></div>
-          <div><TimerReset size={18} /><span><strong>Throughput and memory</strong><small>No frozen hardware receipt yet</small></span></div>
-          <div><Cpu size={18} /><span><strong>INT8 comparison</strong><small>No quantized artifact committed</small></span></div>
+          <div><Gauge size={18} /><span><strong>Native Arm Neoverse-N2</strong><small>aarch64 verified; no emulation</small></span></div>
+          <div><TimerReset size={18} /><span><strong>Controlled batch-one timing</strong><small>200 measured iterations per artifact</small></span></div>
+          <div><Cpu size={18} /><span><strong>Pure CPU / NumPy workload</strong><small>No GPU, NPU, NEON, or power claim</small></span></div>
         </div>
-        <div className="parity-note"><span>FP32 ONNX parity</span><strong>≤ 1.26 × 10⁻⁶</strong><small>512 samples; acceptance bound 1 × 10⁻⁵</small></div>
+        <div className="parity-note"><span>Current trained MLP evidence</span><strong>192.7 µs median</strong><small>Later open-source development: full 8-step forecast, native Arm64, 1,000 repetitions. This is not the submitted FP64→FP32 comparison.</small></div>
       </aside>
     </div>
   );

@@ -1,4 +1,4 @@
-import { Activity, ArrowUpRight, BookOpen, Database, ExternalLink, GitBranch, SlidersHorizontal, UsersRound } from 'lucide-react';
+import { Activity, ArrowUpRight, BookOpen, Cpu, Database, ExternalLink, GitBranch, SlidersHorizontal, UsersRound } from 'lucide-react';
 import SiteChrome from './SiteChrome';
 import './ProjectLanding.css';
 
@@ -18,7 +18,11 @@ export default function ProjectLanding() {
         <div className="landing-hero__copy">
           <p className="eyebrow">Arm Create 2026 / Physical AI track</p>
           <h1>AEOLUS<br /><em>simulation interface</em></h1>
-          <p className="landing-hero__lede">A visible, testable control loop for a distributed habitat ventilation system: simulated rooms produce telemetry, a local model detects a fault, and a safety governor produces a bounded virtual action.</p>
+          <p className="landing-hero__lede">A safety-governed Physical AI simulation with a measured Arm optimization: the submitted FP32 forecast artifact uses 50% less model-array memory and runs 1.73× faster than FP64 on native Neoverse-N2, while preserving prediction parity.</p>
+          <div className="landing-hero__actions">
+            <a className="primary-button" href="/benchmarks"><Cpu size={17} />Inspect Arm evidence</a>
+            <a className="quiet-link" href="https://github.com/arm-hackathon/arm-hackathon" target="_blank" rel="noreferrer">Run the source <ArrowUpRight size={15} /></a>
+          </div>
         </div>
         <div className="landing-hero__signal" aria-label="AEOLUS interface layers">
           <div className="signal-orbit orbit-1" />
@@ -35,9 +39,23 @@ export default function ProjectLanding() {
         </div>
       </section>
 
-      <section className="project-overview" id="project" data-reveal="2">
+      <section className="optimization-proof" aria-labelledby="optimization-title" data-reveal="2">
+        <div className="optimization-proof__intro">
+          <p className="eyebrow">Deadline-era optimization output</p>
+          <h2 id="optimization-title">One workload. Native Arm64. Measured before and after.</h2>
+          <p>FP64 and FP32 ran the same batch-one forecast on an Arm Neoverse-N2 runner. The reduced-precision artifact passed a predeclared prediction-parity gate. These are development benchmark results, not power, NPU, deployment, or qualification claims.</p>
+        </div>
+        <div className="optimization-proof__metrics">
+          <article><strong>1.73×</strong><span>median speed-up</span><small>738.349 → 426.358 µs</small></article>
+          <article><strong>50%</strong><span>less array memory</span><small>28,759,024 → 14,379,512 bytes</small></article>
+          <article><strong>47.1%</strong><span>smaller artifact</span><small>2,126,337 → 1,124,273 bytes</small></article>
+          <article><strong>4.88×10⁻⁶</strong><span>maximum normalized drift</span><small>passed the 1×10⁻⁴ parity gate</small></article>
+        </div>
+      </section>
+
+      <section className="project-overview" id="project" data-reveal="3">
         <div className="section-heading"><p className="eyebrow">What we are building</p><h2>Not a dashboard about a simulation. The interface for the simulation itself.</h2></div>
-        <div className="overview-copy"><p>AEOLUS models a distributed habitat ventilation system. Rooms and processing areas are connected by directed actuators. The Connections view lets the team define that topology before it is consumed by the Python plant model.</p><p>The evidence layers make the loop inspectable: a fan degrades, telemetry changes, local inference scores the fault, the safety governor limits a virtual response, and the resulting plant state is replayable.</p><div className="scope-line"><span>Editable layer</span><strong>Connections</strong><span className="scope-divider" /><span>Evidence layers</span><strong>Live system / Scenarios / Telemetry / Benchmarks</strong></div></div>
+        <div className="overview-copy"><p>AEOLUS models a distributed habitat ventilation system. Rooms and processing areas are connected by directed actuators. The Connections view lets the team define that topology before it is consumed by the Python plant model.</p><p>The current learned adviser forecasts future telemetry under each candidate action. A deterministic Habitat Management Computer reviews every proposal and remains the sole actuator authority. The evidence layers make forecasts, arbitration, plant response, and replay visible without exposing hidden simulator truth to the model.</p><div className="scope-line"><span>Editable layer</span><strong>Connections</strong><span className="scope-divider" /><span>Evidence layers</span><strong>Live system / Scenarios / Telemetry / Benchmarks</strong></div></div>
       </section>
 
       <section className="flow-strip" data-reveal="3">
@@ -62,7 +80,7 @@ export default function ProjectLanding() {
         <div className="notes-column"><p>Simulation only. No live plant, production telemetry, or real actuator command is involved. Abstract values in the current model are not spacecraft measurements or safety thresholds.</p><a href="https://github.com/arm-hackathon/arm-hackathon/blob/main/README.md" target="_blank" rel="noreferrer">Read the current repository README <ArrowUpRight size={14} /></a></div>
       </section>
 
-      <footer className="landing-footer"><span>AEOLUS / Arm Create 2026</span><span>Submission in progress</span><span>Physical AI track</span></footer>
+      <footer className="landing-footer"><span>AEOLUS / Arm Create 2026</span><span>Open-source development</span><span>Physical AI track</span></footer>
     </main>
   );
 }
