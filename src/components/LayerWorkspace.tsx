@@ -86,7 +86,7 @@ const definitions: Record<LayerId, LayerDefinition> = {
     id: 'benchmarks',
     eyebrow: 'Native Arm64 / controlled before-and-after evidence',
     title: 'Half the model memory. 1.73× faster. Prediction parity preserved.',
-    lead: 'The submitted optimization converts the same forecast workload from FP64 to FP32 and measures both artifacts on a native Arm Neoverse-N2 runner. The evidence receipt binds hardware, model hashes, workload, latency, size, and quality.',
+    lead: 'The deadline-era optimization converts the same forecast workload from FP64 to FP32 and measures both artifacts on a native Arm Neoverse-N2 runner. The evidence receipt binds hardware, model hashes, workload, latency, size, and quality.',
     icon: BarChart3,
     status: 'Native Arm64 evidence',
     metrics: [

@@ -18,7 +18,7 @@ export default function ProjectLanding() {
         <div className="landing-hero__copy">
           <p className="eyebrow">Arm Create 2026 / Physical AI track</p>
           <h1>AEOLUS<br /><em>simulation interface</em></h1>
-          <p className="landing-hero__lede">A safety-governed Physical AI simulation with a measured Arm optimization: the submitted FP32 forecast artifact uses 50% less model-array memory and runs 1.73× faster than FP64 on native Neoverse-N2, while preserving prediction parity.</p>
+          <p className="landing-hero__lede">A safety-governed Physical AI simulation with a measured Arm optimization: the deadline-era FP32 forecast artifact uses 50% less model-array memory and runs 1.73× faster than FP64 on native Neoverse-N2, while preserving prediction parity.</p>
           <div className="landing-hero__actions">
             <a className="primary-button" href="/benchmarks"><Cpu size={17} />Inspect Arm evidence</a>
             <a className="quiet-link" href="https://github.com/arm-hackathon/arm-hackathon" target="_blank" rel="noreferrer">Run the source <ArrowUpRight size={15} /></a>
